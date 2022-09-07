@@ -2931,7 +2931,7 @@ Section dearg.
     unfold dearg_mib.
     rewrite Hmasks;cbn.
     rewrite nth_error_mapi.
-    destruct (nth_error _ _) as [|o]eqn:nth;try congruence;cbn in *.
+    destruct (nth_error _ _) as [|]eqn:nth;try congruence;cbn in *.
     rewrite nth_error_mapi.
     destruct (nth_error _ c);try congruence;cbn.
     now inversion Hlook;subst.
@@ -4285,7 +4285,7 @@ Proof.
   destruct (lookup_env _ _) as [mdecl_e|] eqn:Henv;try congruence;cbn in *.
   destruct mdecl_e as [| mib |]eqn:Hgd;try congruence;cbn in *.
   rewrite nth_error_map.
-  destruct (nth_error _ _) as [|o1]eqn:nth;try congruence;cbn in *.
+  destruct (nth_error _ _) as [|]eqn:nth;try congruence;cbn in *.
   rewrite nth_error_map.
   destruct (nth_error _ c);try congruence;cbn.
   destruct p as [p0]. destruct p0;cbn.

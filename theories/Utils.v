@@ -236,6 +236,7 @@ Definition to_kername (t : Ast.term) : option kername :=
   | _ => None
   end.
 
+Set Warnings "-non-reversible-notation".
 Notation "<%% t %%>" :=
   (ltac:(let p y :=
              let e := eval cbv in (to_kername y) in

@@ -7,7 +7,7 @@ Builds with Coq 8.15 and MetaCoq 1.0+8.15
 
 ## How to build
 
-Our development works with Coq 8.15 and depends on MetaCoq and coq-equations. 
+Our development works with Coq 8.15 and depends on MetaCoq and coq-equations.
 The dependencies can be installed through `opam`.
 
 To set up a switch with the necessary dependencies run the following commands from the root of the project:

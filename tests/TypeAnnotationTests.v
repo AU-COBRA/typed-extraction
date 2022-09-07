@@ -118,7 +118,6 @@ Proof.
   cbn in *.
   unfold constant_body_annots in *.
   destruct Ex.cst_body; [|exact does_not_happen].
-  SearchPattern (_ -> P.global_env_ext).
   exact (print_term_annotated (P.empty_ext (PCUICProgram.trans_env_env (TemplateToPCUIC.trans_global_env p.1))) [] t0 annot).
 Defined.
 

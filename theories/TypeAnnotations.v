@@ -430,7 +430,7 @@ Definition annot_dearg_lambdas {A} mask {t} (ta : annots A t)
   : annots A (dearg_lambdas mask t).
 Proof.
   revert t ta mask.
-  fix f 1. Show Proof.
+  fix f 1.
   intros [] ta mask; cbn in *; try exact ta.
   - destruct mask; [exact ta|].
     destruct b.

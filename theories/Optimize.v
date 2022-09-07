@@ -173,8 +173,8 @@ Definition dearg_branch_body (mask : bitmask) (bctx : list name) (t : term) : li
   let bctx_mask := complete_ctx_mask mask bctx in
   (masked bctx_mask bctx, (dearg_branch_body_rec 0 bctx_mask t).2).
 
-Compute dearg_lambdas [true;false] (tLambda (nNamed "a") (tLambda (nNamed "b") (tLambda (nNamed "c") (tApp (tApp (tRel 0) (tRel 1)) (tRel 2))))).
-Compute dearg_branch_body ([true;false]) ([nNamed "c";nNamed "b"; nNamed "a"]) (tApp (tApp (tRel 0) (tRel 1)) (tRel 2)).
+(* Compute dearg_lambdas [true;false] (tLambda (nNamed "a") (tLambda (nNamed "b") (tLambda (nNamed "c") (tApp (tApp (tRel 0) (tRel 1)) (tRel 2))))). *)
+(* Compute dearg_branch_body ([true;false]) ([nNamed "c";nNamed "b"; nNamed "a"]) (tApp (tApp (tRel 0) (tRel 1)) (tRel 2)). *)
 
 Definition dearged_npars (mm : option mib_masks) (npars : nat) : nat :=
   match mm with
@@ -716,10 +716,6 @@ Definition trim_ind_masks (im : list (kername × mib_masks)) :=
   map (on_snd trim_mib_masks) im.
 
 Import MCMonadNotation.
-
-Print Instances Monad.
-
-(* Definition res_string := (fun x => result x string). *)
 
 Definition throwIf (b : bool) (err : string) : (fun x => result x string) unit  :=
   if b then Err err else Ok tt.
