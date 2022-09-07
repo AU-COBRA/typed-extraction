@@ -175,7 +175,7 @@ Proof.
     * now apply KernameSet.singleton_spec.
 Qed.
 
-Print Assumptions extract_correct.
+(* Print Assumptions extract_correct. *)
 
 (* There are some assumptions of which almost all are in MetaCoq.
    From this project is only assume_env_wellformed assumption which is

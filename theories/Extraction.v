@@ -15,6 +15,7 @@ From MetaCoq.PCUIC Require Import PCUICTyping.
 From MetaCoq.PCUIC Require Import TemplateToPCUIC.
 From MetaCoq.SafeChecker Require Import SafeTemplateChecker.
 
+#[export]
 Existing Instance extraction_checker_flags.
 
 Module PEnv := P.PCUICEnvironment.

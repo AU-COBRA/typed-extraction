@@ -746,6 +746,7 @@ Example ex8_test :
   erase_and_print_type_scheme ex8 = ("T _", "t (option T) 𝕋").
 Proof. vm_compute. reflexivity. Qed.
 
+Set Warnings "-non-recursive".
 Fixpoint vector_wrap_fix T n := Vector.t (option T) n.
 MetaCoq Quote Recursively Definition ex9 := vector_wrap_fix.
 Example ex9_test :

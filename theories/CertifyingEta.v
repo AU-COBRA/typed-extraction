@@ -265,7 +265,7 @@ Module Examples.
 
   (** [partial_app2_expanded] is defined in terms of [partial_app1_expanded] *)
   (* FIXME: it's a bit fragile to refer to unquoted definitions, because their names depend on a module/path they are in *)
-  Print MetaCoq_TypedExtraction_CertifyingEta_Examples_Ex2_partial_app2_expanded.
+  (* Print MetaCoq_TypedExtraction_CertifyingEta_Examples_Ex2_partial_app2_expanded. *)
   (* MetaCoq_TypedExtraction_CertifyingEta_Examples_Ex2_partial_app2_expanded =
   let f :=
     fun A B : Type => MetaCoq_TypedExtraction_CertifyingEta_Examples_Ex2_partial_app1_expanded A B in

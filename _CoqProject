@@ -1,7 +1,3 @@
--arg -w -arg -undeclared-scope
--arg -w -arg -notation-overridden
--arg -w -arg -non-reversible-notation
-
 -Q theories MetaCoq.TypedExtraction
 
 theories/Annotations.v
