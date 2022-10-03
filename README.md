@@ -3,11 +3,11 @@
 Extraction of types, certifying transformations (eta, inlining), type annotations, the dearg optimisation and corresponding proofs.
 The repository is an intermadiate step towards moving this functionality to MetaCoq.
 
-Builds with Coq 8.15 and MetaCoq 1.0+8.15
+Builds with Coq 8.16 and MetaCoq 1.0+8.16
 
 ## How to build
 
-Our development works with Coq 8.15 and depends on MetaCoq and coq-equations.
+Our development works with Coq 8.16 and depends on MetaCoq and coq-equations.
 The dependencies can be installed through `opam`.
 
 To set up a switch with the necessary dependencies run the following commands from the root of the project:
@@ -17,7 +17,7 @@ opam switch create . 4.10.2 --repositories default,coq-released=https://coq.inri
 eval $(opam env)
 ```
 
-If Coq 8.15 is already installed, run
+If Coq 8.16 is already installed, run
 
 ```bash
 opam repo add coq-released https://coq.inria.fr/opam/released
