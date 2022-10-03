@@ -4009,10 +4009,11 @@ Proof.
            subst ctx_mask.
            rewrite <- rev_repeat, <- rev_app_distr.
            rewrite <- (rev_repeat _ tBox).
+           subst mm.
            rewrite <- mask_rev by (simpl_length; lia).
            rewrite <- masked_weakening.
            rewrite dearg_branch_body_rec_substl_correct;cbn in *;
-             try (simpl_length;lia);intuition;eauto with dearg.
+             try (simpl_length; lia);intuition;eauto with dearg.
            rewrite rev_repeat.
            rewrite <- dearg_repeat_tBox.
            rewrite <- dearg_substl by eauto with dearg.
