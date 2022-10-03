@@ -759,7 +759,7 @@ Proof.
         assert (#|ctx_mask| = #|x.1|) by
           now subst;apply complete_ctx_mask_length.
         rewrite masked_count_zeros by lia.
-        rewrite <- plus_assoc.
+        rewrite <- Nat.add_assoc.
         specialize (dearg_branch_body_rec_lift 0 ctx_mask n (#|x.1| - #|ctx_mask| + k)) as H1.
         cbn in H1.
         rewrite <- H1.
@@ -1045,7 +1045,7 @@ Proof.
   assert (#|ctx_mask| = #|bctx|) by now subst;propify;apply complete_ctx_mask_length.
   rewrite masked_count_zeros by lia.
   f_equal. symmetry.
-  rewrite <- plus_assoc.
+  rewrite <- Nat.add_assoc.
   specialize (dearg_branch_body_rec_subst 0 ctx_mask s (#|bctx| - #|ctx_mask| + k) t) as Hb.
   cbn in Hb.
   now replace (#|ctx_mask| + (#|bctx| - #|ctx_mask| + k)) with (#|bctx| + k) in Hb by lia.
@@ -1337,7 +1337,7 @@ Proof.
     specialize (is_dead_dearg_branch_body 0 ((#|l| - #|mm|) + k) mm t) as b.
     cbn in b.
     replace (#|mm| + (#|l| - #|mm| + k)) with (#|l| + k) in b by lia.
-    now rewrite <- plus_assoc.
+    now rewrite <- Nat.add_assoc.
   - reflexivity.
 Qed.
 
@@ -2179,7 +2179,7 @@ Proof.
       specialize (closedn_dearg_case_branch_body_rec 0 ((#|x.1| - #|mm|) + k) mm ((dearg_aux [] x.2))) as b.
       cbn in b.
       replace (#|mm| + (#|x.1| - #|mm| + k)) with (#|x.1| + k) in * by lia.
-      rewrite <- plus_assoc.
+      rewrite <- Nat.add_assoc.
       apply b.
       now apply p.
     * now apply IHX.
@@ -3453,7 +3453,7 @@ Lemma dearg_branch_body_rec_all_zeros n t i:
 Proof.
   revert i.
   induction n;intros i;cbn.
-  - now rewrite plus_0_r.
+  - now rewrite Nat.add_0_r.
   - now replace (i + S n) with (S i + n) by lia.
 Qed.
 
@@ -3667,7 +3667,7 @@ Proof.
              trans_env (dearg_env Σ) e⊢ dearg t ▷ dearg v).
   { intros ev.
     eapply (H _ ev).
-    apply le_refl. }
+    apply Nat.le_refl. }
   induction n as [|n IH] in t, v, clos_t, valid_t, exp_t |- *; intros ev deriv_len.
   { now pose proof (deriv_length_min ev). }
   destruct (dearg_elim t).
@@ -4009,10 +4009,11 @@ Proof.
            subst ctx_mask.
            rewrite <- rev_repeat, <- rev_app_distr.
            rewrite <- (rev_repeat _ tBox).
+           subst mm.
            rewrite <- mask_rev by (simpl_length; lia).
            rewrite <- masked_weakening.
            rewrite dearg_branch_body_rec_substl_correct;cbn in *;
-             try (simpl_length;lia);intuition;eauto with dearg.
+             try (simpl_length; lia);intuition;eauto with dearg.
            rewrite rev_repeat.
            rewrite <- dearg_repeat_tBox.
            rewrite <- dearg_substl by eauto with dearg.
