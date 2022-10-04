@@ -117,7 +117,8 @@ Definition inline_globals (should_inline : kername -> bool) (Σ : global_declara
                      universes is expensive if the set is big. However, all
                      the lookup functions take [global_env]. *)
                   let Σ0 := {| universes := ContextSet.empty;
-                              declarations := decls |} in
+                              declarations := decls;
+                              retroknowledge := MetaCoq.Template.Environment.Retroknowledge.empty |} in
                   (kn, inline_in_decl should_inline Σ0 decl) :: decls) [] Σ in
   filter (fun '(kn, _) => negb (should_inline kn)) newΣ.
 
@@ -144,7 +145,7 @@ Definition inline_def {A}
 
 
 Definition template_inline (should_inline : kername -> bool): TemplateTransform :=
-  fun Σ => Ok (timed "Inlining" (fun _ => (Build_global_env (universes Σ) (inline_globals should_inline (declarations Σ))))).
+  fun Σ => Ok (timed "Inlining" (fun _ => (mk_global_env (universes Σ) (inline_globals should_inline (declarations Σ)) (retroknowledge Σ)))).
 
 Module Tests.
 

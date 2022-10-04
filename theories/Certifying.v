@@ -49,6 +49,8 @@ Definition change_modpath (mpath : modpath) (suffix : string) (to_rename : kerna
     | tProj proj t => tProj proj (go t)
     | tFix mfix idx => tFix (map (map_def go go) mfix) idx
     | tCoFix mfix idx => tCoFix (map (map_def go go) mfix) idx
+    | tInt n => tInt n
+    | tFloat n => tFloat n
   end.
 
 Fixpoint map_constants_global_decls (k : kername -> kername) (f : constant_body -> constant_body) (Σ : global_declarations) : global_declarations :=
@@ -60,7 +62,8 @@ Fixpoint map_constants_global_decls (k : kername -> kername) (f : constant_body 
 
 Definition map_constants_global_env (k : kername -> kername) (f : constant_body -> constant_body) (Σ : global_env) : global_env :=
   {| universes := Σ.(universes);
-     declarations := map_constants_global_decls k f Σ.(declarations) |}.
+     declarations := map_constants_global_decls k f Σ.(declarations);
+     retroknowledge := Σ.(retroknowledge) |}.
 
 Definition add_suffix_global_env (mpath : modpath) (suffix : string) (expansion_ignore : kername -> bool) (Σ : global_env) :=
   map_constants_global_env
@@ -106,7 +109,8 @@ Definition is_none {A} (o : option A) :=
 Definition map_global_env_decls (f : global_declarations -> global_declarations)
            (Σ : global_env) : global_env :=
   {| universes := Σ.(universes);
-     declarations := f Σ.(declarations) |}.
+     declarations := f Σ.(declarations);
+     retroknowledge := Σ.(retroknowledge) |}.
 
 (** Given the two environments [Σ1] and [Σ2] we traverse the first and lookup constants
     with the same name in the second. If such a constant is found, we compare the bodies

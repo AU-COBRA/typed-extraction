@@ -275,7 +275,8 @@ Definition dearg_mib (kn : kername) (mib : mutual_inductive_body) : mutual_induc
   match get_mib_masks kn with
   | Some mib_masks =>
     {| ind_npars := count_zeros (param_mask mib_masks);
-       ind_bodies := mapi (dearg_oib mib_masks) (ind_bodies mib) |}
+       ind_bodies := mapi (dearg_oib mib_masks) (ind_bodies mib);
+       ind_finite := (ind_finite mib) |}
   | None => mib
   end.
 
@@ -400,7 +401,7 @@ Fixpoint is_expanded_aux (nargs : nat) (t : term) : bool :=
   | tProj _ t => is_expanded_aux 0 t
   | tFix defs _
   | tCoFix defs _ => forallb (is_expanded_aux 0 ∘ EAst.dbody) defs
-  (* | tPrim _ => true *)
+  | tPrim _ => true
   end.
 
 (* Check if all applications are applied enough to be deboxed without eta expansion *)
@@ -484,7 +485,7 @@ Definition debox_type_oib (oib : one_inductive_body) : one_inductive_body :=
      ind_projs := map (on_snd debox) (ind_projs oib); |}.
 
 Definition debox_type_mib (mib : mutual_inductive_body) : mutual_inductive_body :=
-  {| ind_npars := ind_npars mib; ind_bodies := map debox_type_oib (ind_bodies mib) |}.
+  {| ind_npars := ind_npars mib; ind_bodies := map debox_type_oib (ind_bodies mib); ind_finite := ind_finite mib |}.
 
 Definition debox_type_decl (decl : global_decl) : global_decl :=
   match decl with
@@ -636,7 +637,7 @@ Fixpoint analyze (state : analyze_state) (t : term) {struct t} : analyze_state :
     let state := new_vars state #|defs| in
     let state := fold_left (fun state d => analyze state (dbody d)) defs state in
     remove_vars state #|defs|
-  (* | tPrim _ => state *)
+  | tPrim _ => state
   end.
 
 Fixpoint decompose_TArr (bt : box_type) : list box_type × box_type :=

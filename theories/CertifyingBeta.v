@@ -70,7 +70,7 @@ Definition betared_def {A}
 
 
 Definition template_betared : TemplateTransform :=
-  fun Σ => Ok (timed "Inlining" (fun _ => Build_global_env (universes Σ) (betared_globals (declarations Σ)))).
+  fun Σ => Ok (timed "Inlining" (fun _ => mk_global_env (universes Σ) (betared_globals (declarations Σ)) (retroknowledge Σ))).
 
 Module Ex1.
 

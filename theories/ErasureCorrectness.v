@@ -25,7 +25,7 @@ Local Ltac invert_wf :=
   match goal with
   | [H: wf _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
-  | [H : on_global_decls _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+  | [H : on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
   end.
 
 
@@ -98,17 +98,17 @@ Qed.
 End ECorrect.
 
 Opaque erase_type flag_of_type ErasureFunction.wf_reduction.
-Lemma erase_global_decls_deps_recursive_correct decls univs wfΣ include ignore_deps :
-  let Σ := Build_global_env univs decls in
+Lemma erase_global_decls_deps_recursive_correct decls univs retro wfΣ include ignore_deps :
+  let Σ := mk_global_env univs decls retro in
   (forall k, ignore_deps k = false) ->
   (forall k, KernameSet.In k include -> P.lookup_env Σ k <> None) ->
-  includes_deps Σ (trans_env (erase_global_decls_deps_recursive decls univs wfΣ include ignore_deps)) include.
+  includes_deps Σ (trans_env (erase_global_decls_deps_recursive decls univs retro wfΣ include ignore_deps)) include.
 Proof.
   cbn.
   cut (is_true (KernameSet.subset include include)); [|now apply KernameSet.subset_spec].
   generalize include at 1 3 5 as include'.
   intros include' sub no_ignores all_in.
-  induction decls as [|(kn, decl) Σ0 IH] in univs, decls, wfΣ, all_in, include, include', sub |- *.
+  induction decls as [|(kn, decl) Σ0 IH] in univs, decls, retro, wfΣ, all_in, include, include', sub |- *.
   { intros kn isin. cbn.
     now apply all_in in isin. }
   simpl in *.
@@ -118,7 +118,7 @@ Proof.
         set (wfdecl := wfdeclarg) in *; clearbody wfdecl
   end.
   match goal with
-  | |- context[erase_global_decls_deps_recursive _ _ ?wfΣarg] =>
+  | |- context[erase_global_decls_deps_recursive _ _ _ ?wfΣarg] =>
     set (wfΣprev := wfΣarg) in *; clearbody wfΣprev
   end.
 
@@ -126,8 +126,8 @@ Proof.
   rewrite no_ignores;cbn.
   destruct KernameSet.mem eqn:mem; cycle 1.
   - intros kn' isin.
-    change {| P.universes := univs; P.declarations := (kn, decl) :: Σ0 |} with
-      (add_global_decl {| P.universes := univs; P.declarations := Σ0 |} (kn, decl)).
+    change {| P.universes := univs; P.declarations := (kn, decl) :: Σ0; P.retroknowledge := retro |} with
+      (add_global_decl {| P.universes := univs; P.declarations := Σ0; P.retroknowledge := retro|} (kn, decl)).
     apply global_erases_with_deps_weaken; auto.
     eapply IH; eauto.
     intros k kisin.
@@ -141,10 +141,10 @@ Proof.
   - cbn in *.
     intros k isin.
     destruct (Kername.eq_dec k kn) as [->|]; cycle 1.
-    { change {| P.universes := univs; P.declarations := (kn, decl) :: Σ0 |} with
-      (add_global_decl {| P.universes := univs; P.declarations := Σ0 |} (kn, decl)).
+    { change {| P.universes := univs; P.declarations := (kn, decl) :: Σ0; P.retroknowledge := retro |} with
+      (add_global_decl {| P.universes := univs; P.declarations := Σ0; P.retroknowledge := retro |} (kn, decl)).
       apply global_erases_with_deps_cons; auto.
-      eapply (IH _ wfΣprev _ (KernameSet.singleton k)).
+      eapply (IH _ _ wfΣprev _ (KernameSet.singleton k)).
       - apply KernameSet.subset_spec.
         intros ? ?.
         eapply KernameSet.singleton_spec in H; subst a.
@@ -193,7 +193,7 @@ Proof.
         constructor.
         eapply (Is_type_extends (({| P.universes := univs; P.declarations := Σ0 |}, _))).
         2: now eauto.
-        2: { eexists. reflexivity. eexists [_]. cbn. reflexivity. }
+        2: { eexists. reflexivity. eexists [_]. eexists. cbn. reflexivity. }
         1: now eauto.
         eexists _.
         split; [eassumption|].
@@ -218,14 +218,14 @@ Proof.
            2: now eauto.
            1: repeat invert_wf;split;auto;split;auto.
            1: repeat invert_wf;split;auto.
-           2: { eexists. reflexivity. eexists [_]; reflexivity. }
+           2: { eexists. reflexivity. eexists [_]; reflexivity. reflexivity. }
            1: constructor;auto.
            now apply erases_erase.
         -- intros.
            noconf H.
            destruct wfΣext.
            assert (unfold_add_gd : forall univs decls (decl : kername × global_decl),
-                      add_global_decl (Build_global_env univs decls) decl = {| P.universes := univs; P.declarations := decl :: decls |}) by reflexivity.
+                      add_global_decl (mk_global_env univs decls retro) decl = {| P.universes := univs; P.declarations := decl :: decls; P.retroknowledge := retro |}) by reflexivity.
            rewrite <- unfold_add_gd.
            repeat invert_wf.
            apply erases_deps_cons;eauto;cbn in *.

@@ -171,7 +171,7 @@ Definition eta_global_env
   let Σp := PCUICProgram.trans_env_env (TemplateToPCUIC.trans_global_env Σ) in
   let Σe :=
       erase_global_decls_deps_recursive
-        (PEnv.declarations Σp) (PEnv.universes Σp) (assume_env_wellformed _)
+        (PEnv.declarations Σp) (PEnv.universes Σp) (PEnv.retroknowledge Σp) (assume_env_wellformed _)
         seeds erasure_ignore in
   let (const_masks, ind_masks) := analyze_env overridden_masks Σe in
   let const_masks := (if trim_consts then trim_const_masks else id) const_masks in
@@ -187,7 +187,7 @@ Definition eta_global_env
       | None => cb
       end in
   let Σ' := restrict_env (declarations Σ) (map (fun '(kn, _, _) => kn) Σe) in
-  map_constants_global_env id f {| universes := universes Σ; declarations := Σ' |}.
+  map_constants_global_env id f {| universes := universes Σ; declarations := Σ'; retroknowledge := retroknowledge Σ |}.
 
 Definition eta_global_env_template
            (overridden_masks : kername -> option bitmask)

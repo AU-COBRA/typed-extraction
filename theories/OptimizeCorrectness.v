@@ -450,6 +450,7 @@ Proof.
       now f_equal.
     + rewrite <- !Nat.add_succ_r in *.
       now apply IHX.
+  - reflexivity.
 Qed.
 
 Lemma masked_nil {X} mask :
@@ -798,6 +799,7 @@ Proof.
     cbn.
     f_equal.
     now rewrite p.
+  - now rewrite lift_mkApps.
 Qed.
 
 Lemma lift_dearg n k t :
@@ -848,6 +850,7 @@ Proof.
     f_equal.
     rewrite <- !Nat.add_succ_r.
     now apply IHX.
+  - reflexivity.
 Qed.
 
 Lemma is_dead_lift_all k k' n t :
@@ -1395,6 +1398,7 @@ Proof.
     rewrite p by easy.
     split; [easy|].
     now apply IHX.
+  - now apply forallb_Forall.
 Qed.
 
 Lemma valid_dearg_mask_dearg mask t :
@@ -1551,6 +1555,7 @@ Proof.
     unfold map_def; cbn.
     f_equal.
     now apply (p _ _ []).
+  - now rewrite subst_mkApps, map_map.
 Qed.
 
 Lemma dearg_subst s k t :
@@ -1666,6 +1671,7 @@ Proof.
     propify.
     rewrite <- !Nat.add_succ_r.
     now rewrite p, IHX.
+  - assumption.
 Qed.
 
 Lemma is_expanded_aux_subst s n t k :
@@ -1709,6 +1715,7 @@ Proof.
     propify.
     rewrite <- !Nat.add_succ_r.
     now rewrite p, IHX.
+  - assumption.
 Qed.
 
 Lemma is_expanded_substl s n t :
@@ -1841,7 +1848,7 @@ Proof.
     + destruct br as [bctx br];cbn in *.
       destruct exp_t as [? exp_brs].
       eapply forallb_nth_error in exp_brs;eauto;cbn in *.
-      rewrite e1 in exp_brs;cbn in *.
+      rewrite e2 in exp_brs;cbn in *.
       now eapply is_expanded_aux_upwards.
   - apply IHev2.
     apply is_expanded_substl.
@@ -1893,7 +1900,7 @@ Proof.
     specialize (IHev1 _ exp_t).
     apply is_expanded_aux_mkApps_inv in IHev1 as (exp_hd & exp_args).
     destruct (nth_error _ _) eqn:nth; [|easy].
-    inversion e2;subst;clear e2.
+    inversion e3;subst;clear e3.
     eapply nth_error_forall in nth; [|eassumption].
     cbn in *.
     now apply (is_expanded_aux_upwards 0).
@@ -2452,15 +2459,15 @@ Proof with auto with dearg.
     apply closed_mkApps_inv in Happs as (? & ?).
     assert (closed (iota_red pars args br)).
     { apply closed_iota_red; auto.
-      eapply (nth_error_forallb e1) in clos_brs as ?.
+      eapply (nth_error_forallb e2) in clos_brs as ?.
       cbn in *.
       replace (#|br.1| + 0) with #|br.1| in * by lia.
-      now rewrite e3. }
+      now rewrite e4. }
     eapply eval_closed in ev2 as ?...
     eapply valid_cases_mkApps_inv in val_cases as (? & ?).
     apply IHev2...
     apply valid_cases_iota_red...
-    eapply (nth_error_forallb e1) in val_brs as ?...
+    eapply (nth_error_forallb e2) in val_brs as ?...
   - subst brs.
     cbn in *.
     propify.
@@ -2775,7 +2782,8 @@ Proof.
     unfold EGlobalEnv.lookup_constructor in *;cbn in *.
     destruct EGlobalEnv.lookup_env as [g|];try congruence.
     destruct g;cbn in *;try congruence.
-    now repeat destruct nth_error;cbn;try congruence.
+    rewrite block.
+    repeat destruct nth_error;cbn;try congruence.
   - destruct argsv as [|? ? _] using MCList.rev_ind.
     { apply All2_length in all as len.
       rewrite app_length in len; cbn in *; lia. }
@@ -2913,7 +2921,7 @@ Section dearg.
     destruct p as [p0 ?];cbn in *.
     destruct p0;cbn in *.
     now inversion Hlook;subst.
-    Qed.
+  Qed.
 
   Lemma lookup_ctor_dearg:
           forall (ind : inductive) (c : nat) mmasks (mdecl : mutual_inductive_body)
@@ -3009,10 +3017,10 @@ Section dearg.
         rewrite map_length.
         now apply dearg_cunfold_fix.
       + invert_facts.
-        apply closed_cunfold_fix in e as ?; auto.
-        apply valid_cases_cunfold_fix in e as ?; auto.
+        apply closed_cunfold_fix in e1 as ?; auto.
+        apply valid_cases_cunfold_fix in e1 as ?; auto.
         cbn in *.
-        apply is_expanded_cunfold_fix in e as ?; eauto with dearg.
+        apply is_expanded_cunfold_fix in e1 as ?; eauto with dearg.
         rewrite <- dearg_expanded, <- dearg_mkApps by easy.
         apply IHev3 with (ev:=ev3)...
         * apply closed_mkApps...
@@ -3046,9 +3054,9 @@ Section dearg.
       + unshelve epose proof (IH _ _ _ _ _ ev2 _) as ev; trivial.
         1: lia.
       + eapply IHev3;eauto;try lia.
-        eapply closed_cunfold_fix in e as c_fn;auto.
-        eapply valid_cases_cunfold_fix in e as vc_fn;auto.
-        eapply is_expanded_cunfold_fix in e as ?;auto with dearg.
+        eapply closed_cunfold_fix in e0 as c_fn;auto.
+        eapply valid_cases_cunfold_fix in e0 as vc_fn;auto.
+        eapply is_expanded_cunfold_fix in e0 as ?;auto with dearg.
     - facts.
       apply lookup_ctor_trans_env in e0 as e0'.
       destruct e0' as (mib & oib & ctor & Hlook & Hmib & Hoib & Hctor).
@@ -3110,6 +3118,7 @@ Section dearg.
           cbn in *; propify.
           rewrite dearg_single_masked by (now rewrite map_length).
           rewrite isLambda_mkApps, isFixApp_mkApps, isBox_mkApps, isConstructApp_mkApps;cbn in *.
+          rewrite isPrimApp_mkApps.
           destruct with_guarded_fix;cbn;auto.
           now rewrite EOptimizePropDiscr.isFix_mkApps;cbn.
         * rewrite isLambda_mkApps, isFixApp_mkApps, isBox_mkApps, isConstructApp_mkApps in *;cbn in *.
@@ -3117,14 +3126,14 @@ Section dearg.
           destruct with_guarded_fix;cbn in *; intuition.
         * unfold dearg_case.
           destruct with_guarded_fix;cbn.
-          now rewrite isLambda_mkApps, isFixApp_mkApps, isBox_mkApps, isConstructApp_mkApps;cbn.
-          now rewrite isLambda_mkApps, isBox_mkApps, isConstructApp_mkApps, EOptimizePropDiscr.isFix_mkApps;cbn.
+          now rewrite isLambda_mkApps, isFixApp_mkApps, isBox_mkApps, isConstructApp_mkApps, isPrimApp_mkApps;cbn.
+          now rewrite isLambda_mkApps, isBox_mkApps, isConstructApp_mkApps, EOptimizePropDiscr.isFix_mkApps, isPrimApp_mkApps;cbn.
         * unfold dearg_proj.
           unfold dearg_case.
           destruct with_guarded_fix;cbn.
-          ** now rewrite isLambda_mkApps, isFixApp_mkApps, isBox_mkApps, isConstructApp_mkApps;cbn.
-          ** now rewrite isLambda_mkApps, isBox_mkApps, isConstructApp_mkApps, EOptimizePropDiscr.isFix_mkApps;cbn.
-        * rewrite !isLambda_mkApps, !isFixApp_mkApps, !EOptimizePropDiscr.isFix_mkApps, !isBox_mkApps, isConstructApp_mkApps in *
+          ** now rewrite isLambda_mkApps, isFixApp_mkApps, isBox_mkApps, isConstructApp_mkApps, isPrimApp_mkApps;cbn.
+          ** now rewrite isLambda_mkApps, isBox_mkApps, isConstructApp_mkApps, EOptimizePropDiscr.isFix_mkApps, isPrimApp_mkApps;cbn.
+        * rewrite !isLambda_mkApps, !isFixApp_mkApps, !EOptimizePropDiscr.isFix_mkApps, !isBox_mkApps, isConstructApp_mkApps, isPrimApp_mkApps in *
             by now destruct hd.
           rewrite map_length.
           destruct with_guarded_fix;cbn;auto;
@@ -3805,16 +3814,16 @@ Proof.
       clear clos_args valid_args exp_args.
       invert_facts.
       cbn in *; propify.
-      pose proof e0 as ee.
-      unfold constructor_isprop_pars_decl in e0;cbn in e0.
-      rewrite lookup_env_trans_env in e0.
+      pose proof e1 as ee.
+      unfold constructor_isprop_pars_decl in e1;cbn in e1.
+      rewrite lookup_env_trans_env in e1.
       destruct (lookup_env _ _) as [g|]eqn:Hg;cbn in *;try congruence.
       destruct g as [ | mib |] eqn:Hmib;cbn in *;try congruence.
-      rewrite nth_error_map in e0.
+      rewrite nth_error_map in e1.
       destruct nth_error as [oib|] eqn:Hoib;cbn in *;try congruence.
       cbn in *.
       destruct (nth_error _ c);cbn in *;try congruence.
-      inversion e0;subst.
+      inversion e1;subst.
       assert (decl_ind :declared_inductive (trans_env Σ) ind (trans_mib mib) (trans_oib oib)).
         { unfold declared_inductive,declared_minductive.
           split. rewrite lookup_env_trans_env. now rewrite Hg.
@@ -3832,7 +3841,7 @@ Proof.
       * unfold dearg_case_branches,valid_case_masks in *.
         rewrite Hmask in *.
         unfold dearg_case_branch in *.
-        rewrite nth_error_mapi, nth_error_map, e1;cbn. eauto.
+        rewrite nth_error_mapi, nth_error_map, e2;cbn. eauto.
       * propify.
         cbn in *.
         unfold trans_ctors in *.
@@ -3843,13 +3852,13 @@ Proof.
         propify.
         destruct valid_brs_masks as [? Hall].
         apply alli_Alli in Hall.
-        eapply (Alli_nth_error _ _ _ _ _ _ Hall) in e1;eauto.
+        eapply (Alli_nth_error _ _ _ _ _ _ Hall) in e2;eauto.
         destruct br as [ctx br];cbn in *.
         propify.
-        destruct e1 as [bm_ctx valid_bm].
-        rewrite skipn_length in e3.
+        destruct e2 as [bm_ctx valid_bm].
+        rewrite skipn_length in e4.
         rewrite masked_count_zeros by (simpl_length;lia).
-        rewrite map_length. rewrite e2.
+        rewrite map_length. rewrite e3.
         unfold get_ctor_mask.
         rewrite count_zeros_distr_app. rewrite app_length.
         cbn.
@@ -3864,11 +3873,11 @@ Proof.
         propify.
         destruct valid_brs_masks as [? Hall].
         apply alli_Alli in Hall.
-        eapply (Alli_nth_error _ _ _ _ _ _ Hall) in e1;eauto.
+        eapply (Alli_nth_error _ _ _ _ _ _ Hall) in e2;eauto.
         destruct br as [ctx br];cbn in *.
-        unfold is_true in e1.
-        rewrite andb_true_iff in e1.
-        destruct e1 as [bm_ctx valid_bm].
+        unfold is_true in e2.
+        rewrite andb_true_iff in e2.
+        destruct e2 as [bm_ctx valid_bm].
         unfold dearg_case_branch in *;cbn in *.
         subst br_dearg.
         rewrite bm_ctx. cbn.
@@ -3887,7 +3896,7 @@ Proof.
         rewrite <- count_zeros_rev.
         rewrite app_length, map_length.
         rewrite count_zeros_repeat.
-        rewrite skipn_length in e3. lia.
+        rewrite skipn_length in e4. lia.
         * cbn in *.
           unfold get_ctor_mask.
           rewrite Hmask.
@@ -3922,7 +3931,7 @@ Proof.
         propify.
         destruct valid_brs_masks as [? Hall].
         apply alli_Alli in Hall.
-        eapply (Alli_nth_error _ _ _ _ _ _ Hall) in e1 as HH;eauto.
+        eapply (Alli_nth_error _ _ _ _ _ _ Hall) in e2 as HH;eauto.
         destruct br as [ctx br];cbn in *.
         unfold is_true in HH.
         rewrite andb_true_iff in HH.
@@ -3930,7 +3939,7 @@ Proof.
         rewrite bm_ctx;cbn.
         change (dearg_aux []) with dearg.
         specialize (forallb_nth_error _ _ c valid_brs) as valid_br.
-        rewrite e1 in valid_br;cbn in *.
+        rewrite e2 in valid_br;cbn in *.
         rewrite dearg_branch_body_rec_dearg by assumption.
         invert_facts.
         remember (ind_npars mib) as pars.
@@ -3944,7 +3953,7 @@ Proof.
           ** apply closed_substl.
              now rewrite forallb_rev.
              eapply nth_error_forallb in clos_brs;eauto;cbn in *.
-             now rewrite List.rev_length,e3.
+             now rewrite List.rev_length,e4.
           ** eapply nth_error_forallb in valid_brs;eauto;cbn in *.
              apply valid_cases_substl; auto;now apply Forall_rev, Forall_skipn.
           ** eapply nth_error_forallb in exp_brs;eauto;cbn in *.
@@ -3962,7 +3971,7 @@ Proof.
                              (if #|get_branch_mask mm (inductive_ind ind) 0| <=? #|n|
                               then masked ctx_mask n
                              else n)
-                            (dearg_case_branch mm ind 0 (n,dearg f)).2).
+                            (dearg_case_branch mm ind 0 (n,dearg f4)).2).
       * eauto.
       * unshelve eapply (IH _ tBox); eauto.
         lia.
@@ -4125,11 +4134,11 @@ Proof.
       * cbn in *.
         propify.
         unfold dearged_ctor_arity.
-        unfold constructor_isprop_pars_decl in e0;cbn in e0.
-        rewrite lookup_env_trans_env in e0.
+        unfold constructor_isprop_pars_decl in e1;cbn in e1.
+        rewrite lookup_env_trans_env in e1.
         destruct (lookup_env _ _) as [g|]eqn:Hg;cbn in *;try congruence.
         destruct g as [ | mib |] eqn:Hmib;cbn in *;try congruence.
-        rewrite nth_error_map in e0.
+        rewrite nth_error_map in e1.
         destruct nth_error as [oib|] eqn:Hoib;cbn in *;try congruence.
         assert (decl_ind :declared_inductive (trans_env Σ) ind (trans_mib mib) (trans_oib oib)).
         { unfold declared_inductive,declared_minductive.
@@ -4139,7 +4148,7 @@ Proof.
         unfold get_ctor_mask,valid_proj in *.
         rewrite Hmask in *; cbn in *;propify.
         rewrite masked_count_zeros by (rewrite map_length;lia).
-        rewrite map_length. rewrite e1.
+        rewrite map_length. rewrite e2.
         rewrite count_zeros_distr_app. rewrite app_length.
         cbn.
         remember (get_branch_mask _ _ _) as bm.
@@ -4148,11 +4157,11 @@ Proof.
         rewrite app_length in *.
         cbn in *.
         lia.
-      * unfold constructor_isprop_pars_decl in e0;cbn in e0.
-        rewrite lookup_env_trans_env in e0.
+      * unfold constructor_isprop_pars_decl in e1;cbn in e1.
+        rewrite lookup_env_trans_env in e1.
         destruct (lookup_env _ _) as [g|]eqn:Hg;cbn in *;try congruence.
         destruct g as [ | mib |] eqn:Hmib;cbn in *;try congruence.
-        rewrite nth_error_map in e0.
+        rewrite nth_error_map in e1.
         destruct nth_error as [oib|] eqn:Hoib;cbn in *;try congruence.
         assert (decl_ind :declared_inductive (trans_env Σ) ind (trans_mib mib) (trans_oib oib)).
         { unfold declared_inductive,declared_minductive.
@@ -4328,6 +4337,7 @@ Proof.
     depelim t;auto.
     destruct l;simpl in *;try congruence.
     propify.
+    destruct i0.
     destruct (EGlobalEnv.lookup_constructor (trans_env Σ) _ _) as [p | ] eqn:He;simpl in *;try congruence.
     destruct p as [[??]?].
     apply lookup_ctor_trans_env in He as ee.

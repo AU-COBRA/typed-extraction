@@ -80,7 +80,8 @@ Record one_inductive_body :=
     ind_projs : list (ident * box_type); }.
 
 Record mutual_inductive_body :=
-  { ind_npars : nat;
+  { ind_finite : recursivity_kind;
+    ind_npars : nat;
     ind_bodies : list one_inductive_body }.
 
 Inductive global_decl :=
@@ -149,7 +150,8 @@ Definition trans_oib (oib : one_inductive_body) : EAst.one_inductive_body :=
 
 Definition trans_mib
            (mib : mutual_inductive_body) : EAst.mutual_inductive_body :=
-  {| EAst.ind_npars := mib.(ind_npars);
+  {| EAst.ind_finite := mib.(ind_finite);
+     EAst.ind_npars := mib.(ind_npars);
      EAst.ind_bodies := map trans_oib mib.(ind_bodies) |}.
 
 Definition trans_global_decl (decl : global_decl) : EAst.global_decl :=

@@ -1366,7 +1366,7 @@ Program Definition erase_ind
         (mib : PCUICEnvironment.mutual_inductive_body)
         (wt : ∥on_inductive cumulSpec0 (lift_typing typing) rΣ kn mib∥) : mutual_inductive_body :=
   let inds := map_In (PCUICEnvironment.ind_bodies mib) (fun oib is_in => erase_ind_body kn mib oib _) in
-  {| ind_npars := PCUICEnvironment.ind_npars mib; ind_bodies := inds |}.
+  {| ind_npars := PCUICEnvironment.ind_npars mib; ind_bodies := inds; ind_finite := PCUICEnvironment.ind_finite mib |}.
 Next Obligation.
   apply In_nth_error in is_in.
   destruct is_in as (i & nth_some).
@@ -1464,7 +1464,8 @@ Definition decl_deps (decl : global_decl) : KernameSet.t :=
 Program Fixpoint erase_global_decls_deps_recursive
         (Σ : PCUICEnvironment.global_declarations)
         (universes : ContextSet.t)
-        (wfΣ : ∥wf (Build_global_env universes Σ)∥)
+        (retroknowledge : Retroknowledge.t)
+        (wfΣ : ∥wf (mk_global_env universes Σ retroknowledge)∥)
         (include : KernameSet.t)
         (ignore_deps : kername -> bool) : global_env :=
   match Σ with
@@ -1476,21 +1477,21 @@ Program Fixpoint erase_global_decls_deps_recursive
          1. For inductives, we want to allow pattern matches on them and we need
          information about them to print names.
          2. For constants, we use their type to do deboxing. *)
-      let decl := erase_global_decl ((Build_global_env universes Σ), PCUICLookup.universes_decl_of_decl decl) _ kn decl _ in
+      let decl := erase_global_decl ((mk_global_env universes Σ retroknowledge), PCUICLookup.universes_decl_of_decl decl) _ kn decl _ in
       let with_deps := negb (ignore_deps kn) in
       let new_deps := if with_deps then decl_deps decl else KernameSet.empty in
       let Σer := erase_global_decls_deps_recursive
-                   Σ universes _
+                   Σ universes retroknowledge _
                    (KernameSet.union new_deps include) ignore_deps in
       (kn, with_deps, decl) :: Σer
     else
-      erase_global_decls_deps_recursive Σ universes _ include ignore_deps
+      erase_global_decls_deps_recursive Σ universes retroknowledge _ include ignore_deps
   end.
 Ltac invert_wf :=
   match goal with
   | [H: ∥ wf _ ∥ |- _] => sq; inversion H;subst;clear H;cbn in *
   | [H : on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
-  | [H : on_global_decls _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+  | [H : on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
   end.
 Next Obligation.
   repeat invert_wf;split;auto;split;auto.

@@ -46,13 +46,13 @@ Module PEnv := PCUICAst.PCUICEnvironment.
 Lemma wf_erase_global_decl:
   forall (H : EWellformed.EEnvFlags) (k : kername) (g : PCUICAst.PCUICEnvironment.global_decl)
          (decls : list (kername * PCUICAst.PCUICEnvironment.global_decl))
-         (univs : Universes.ContextSet.t) w wt (Σex : global_env),
+         (univs : Universes.ContextSet.t) retros w wt (Σex : global_env),
     EWellformed.wf_glob (trans_env Σex) ->
     EWellformed.wf_global_decl
       (trans_env Σex)
       (trans_global_decl
          (Erasure.erase_global_decl
-            ({| PEnv.universes := univs; PEnv.declarations := decls |},
+            ({| PEnv.universes := univs; PEnv.declarations := decls; PEnv.retroknowledge := retros |},
               PCUICAst.PCUICLookup.universes_decl_of_decl g)
             w k g wt)) = true.
 Proof.
@@ -75,16 +75,16 @@ Ltac invert_wf :=
         match goal with
         | [H:  wf _  |- _] => sq; inversion H;subst;clear H;cbn in *
         | [H : P.on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
-        | [H : P.on_global_decls _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+        | [H : P.on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
         end.
 
 Lemma wf_erase_global_decls_recursive `{EWellformed.EEnvFlags} :
-  forall decls univs w seeds (ignored : kername -> bool),
+  forall decls univs retros w seeds (ignored : kername -> bool),
     let Σex :=
-      Erasure.erase_global_decls_deps_recursive decls univs w seeds ignored in
+      Erasure.erase_global_decls_deps_recursive decls univs retros w seeds ignored in
     EWellformed.wf_glob (trans_env Σex).
 Proof.
-  intros decls univs w seeds ignored ?.
+  intros decls univs retros w seeds ignored ?.
   subst Σex.
   revert seeds.
   induction decls;intros seeds;auto;try constructor.
@@ -98,17 +98,19 @@ Proof.
     * cbn.
       remember (KernameSet.union _ _) as kns.
       clear Heqkns.
-      remember (Erasure.erase_global_decls_deps_recursive decls univs _ _ _) as Σex.
+      remember (Erasure.erase_global_decls_deps_recursive decls univs _ _ _ _) as Σex.
       assert (EWellformed.wf_glob (trans_env Σex)) by now subst Σex.
       now apply wf_erase_global_decl.
     * sq.
       apply OptimizePropDiscr.trans_env_fresh_global.
       apply fresh_globals_erase_global_decl_rec.
-      change decls with (PEnv.declarations {| PEnv.universes := univs; PEnv.declarations := decls |}).
+      change decls with (PEnv.declarations 
+        {| PEnv.universes := univs; PEnv.declarations := decls; PEnv.retroknowledge := retros |}).
       apply PCUICWfEnvImpl.wf_fresh_globals.
       repeat invert_wf;split;auto;split;auto.
       apply fresh_global_erase_global_decl_rec.
-      change decls with (PEnv.declarations {| PEnv.universes := univs; PEnv.declarations := decls |}).
+      change decls with (PEnv.declarations
+        {| PEnv.universes := univs; PEnv.declarations := decls; PEnv.retroknowledge := retros |}).
       now repeat invert_wf.
   - apply IHdecls.
 Qed.
@@ -152,14 +154,14 @@ Proof.
   injection ex as ->.
   destruct wfΣ.
   eapply erases_correct with (Σ':=trans_env (Erasure.erase_global_decls_deps_recursive (PCUICAst.PCUICEnvironment.declarations Σ)
-               (PCUICAst.PCUICEnvironment.universes Σ) (wf_squash (sq w))
+               (PCUICAst.PCUICEnvironment.universes Σ) _ (wf_squash (sq w))
                (KernameSet.singleton kn) ignored)) in ev as (erv&erase_to&[erev]);eauto.
   + depelim erase_to;[|easy].
     constructor.
     eapply dearg_transform_correct; eauto.
     clear dt.
     eapply (@OptimizePropDiscr.optimize_correct _ default_wcbv_flags _ _ (tConst kn) (tConstruct ind c []));eauto.
-    * remember (Erasure.erase_global_decls_deps_recursive _ _ _ _ _) as eΣ.
+    * remember (Erasure.erase_global_decls_deps_recursive _ _ _ _ _ _) as eΣ.
       assert (EWellformed.wf_glob (trans_env eΣ)) by now subst eΣ;eapply wf_erase_global_decls_recursive.
       now apply EWellformed.wellformed_closed_env.
     * eapply wf_erase_global_decls_recursive.

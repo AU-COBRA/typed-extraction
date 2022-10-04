@@ -41,13 +41,13 @@ Record extract_pcuic_params :=
 
 
 Lemma fresh_global_erase_global_decl_rec :
-    forall (Σ0 : global_declarations) (universes0 : ContextSet.t)
-           (wfΣ : ∥ wf ({| PEnv.universes := universes0; PEnv.declarations := Σ0 |}) ∥)
+    forall (Σ0 : global_declarations) (universes0 : ContextSet.t) (retroknowledge0 : Retroknowledge.t)
+           (wfΣ : ∥ wf ({| PEnv.universes := universes0; PEnv.declarations := Σ0; PEnv.retroknowledge := retroknowledge0 |}) ∥)
            (seeds : KernameSet.t) (ignore : kername -> bool) kn,
       EnvMap.EnvMap.fresh_global kn Σ0 ->
-      ExAst.fresh_global kn (erase_global_decls_deps_recursive Σ0 universes0 wfΣ seeds ignore).
+      ExAst.fresh_global kn (erase_global_decls_deps_recursive Σ0 universes0 retroknowledge0 wfΣ seeds ignore).
 Proof.
-  intros Σ0 universes0 wfΣ seeds ignore kn fresh.
+  intros Σ0 universes0 retroknowledge0 wfΣ seeds ignore kn fresh.
   revert wfΣ seeds.
   induction Σ0;intros wfΣ seeds.
   - constructor.
@@ -60,13 +60,13 @@ Proof.
 Qed.
 
 Lemma fresh_globals_erase_global_decl_rec :
-    forall (Σ0 : global_declarations) (universes0 : ContextSet.t)
-           (wfΣ : ∥ wf ({| PEnv.universes := universes0; PEnv.declarations := Σ0 |}) ∥)
+    forall (Σ0 : global_declarations) (universes0 : ContextSet.t) (retroknowledge0 : Retroknowledge.t)
+           (wfΣ : ∥ wf ({| PEnv.universes := universes0; PEnv.declarations := Σ0; PEnv.retroknowledge := retroknowledge0 |}) ∥)
            (seeds : KernameSet.t) (ignore : kername -> bool),
       EnvMap.EnvMap.fresh_globals Σ0 ->
-      ExAst.fresh_globals (erase_global_decls_deps_recursive Σ0 universes0 wfΣ seeds ignore).
+      ExAst.fresh_globals (erase_global_decls_deps_recursive Σ0 universes0 retroknowledge0 wfΣ seeds ignore).
 Proof.
-  intros Σ0 universes0 wfΣ seeds ignore fresh.
+  intros Σ0 universes0 retroknowledge0 wfΣ seeds ignore fresh.
   revert wfΣ seeds.
   induction Σ0;intros wfΣ seeds;cbn in *.
   - constructor.
@@ -85,7 +85,7 @@ Program Definition extract_pcuic_env
            (wfΣ : ∥wf Σ ∥)
            (seeds : KernameSet.t)
            (ignore : kername -> bool) : result ExAst.global_env _ :=
-  let Σ := timed "Erasure" (fun _ => erase_global_decls_deps_recursive (declarations Σ) (universes Σ) wfΣ seeds ignore) in
+  let Σ := timed "Erasure" (fun _ => erase_global_decls_deps_recursive (declarations Σ) (universes Σ) (retroknowledge Σ) wfΣ seeds ignore) in
   if optimize_prop_discr params then
     let Σ := timed "Removal of prop discrimination" (fun _ => OptimizePropDiscr.optimize_env Σ _) in
     compose_transforms (extract_transforms params) Σ

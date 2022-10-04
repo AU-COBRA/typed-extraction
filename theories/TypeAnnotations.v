@@ -268,6 +268,7 @@ annot bt (E.tCoFix edefs _) (tCoFix defs _) wt0 er0 =>
   let last_vl := get_last_type_var erΓ in
   let erΓ1 := Vector.append (context_to_erased Γ last_vl (List.rev defs) _) erΓ in
   (bt, annotate_defs annotate_types (Γ,,, fix_context defs) (VectorEq.cast erΓ1 (rev_mapi_app_length _ _)) defs edefs _);
+annot bt (E.tPrim _) _ _ _ => bt;
 annot bt _ _ wt0 er0 => !
 }.
 Proof.
@@ -400,8 +401,8 @@ Defined.
 
 End fix_env.
 
-Definition annotate_types_erase_global_decls_deps_recursive Σ universes wfΣ include ignore_deps :
-  env_annots box_type (erase_global_decls_deps_recursive Σ universes wfΣ include ignore_deps).
+Definition annotate_types_erase_global_decls_deps_recursive Σ universes retros wfΣ include ignore_deps :
+  env_annots box_type (erase_global_decls_deps_recursive Σ universes retros wfΣ include ignore_deps).
 Proof.
   revert include.
   induction Σ; intros include; [exact tt|].
@@ -414,12 +415,12 @@ Proof.
       pose proof (annotate_types_erase_global_decl a b c d e)
     end.
     match goal with
-    | |- context[erase_global_decls_deps_recursive _ _ ?prf ?incl _] =>
+    | |- context[erase_global_decls_deps_recursive _ _ _ ?prf ?incl _] =>
       specialize (IHΣ prf incl )
     end.
     exact (X, IHΣ).
   - match goal with
-    | |- context[erase_global_decls_deps_recursive _ _ ?prf ?incl _] =>
+    | |- context[erase_global_decls_deps_recursive _ _ _ ?prf ?incl _] =>
       specialize (IHΣ prf incl)
     end.
     exact IHΣ.
@@ -570,6 +571,7 @@ Proof.
     apply bigprod_map; [|exact ta.2].
     intros.
     exact (f _ All_nil _ X).
+  - exact (annot_mkApps ta argsa).
 Defined.
 
 Definition annot_dearg im cm {t : term} (ta : annots box_type t) : annots box_type (dearg im cm t) :=
