@@ -65,11 +65,11 @@ Definition trim_end (b : bool) (bs : bitmask) : bitmask :=
 
 Section dearg.
 Record mib_masks := {
-  (* Bitmask specifying which parameters to remove *)
+  (** Bitmask specifying which parameters to remove *)
   param_mask : bitmask;
-  (* Bitmask specifying which **non-parameter** data to remove from
-     each constructor. The full mask used for each constructor is the
-     concatenation of the param_mask and this mask *)
+  (** Bitmask specifying which _non-parameter_ data to remove from
+      each constructor. The full mask used for each constructor is the
+      concatenation of the param_mask and this mask *)
   ctor_masks : list (nat * nat * bitmask); }.
 
 Import BasicAst.
@@ -89,7 +89,7 @@ Fixpoint dearg_single (mask : bitmask) (t : term) (args : list term) : term :=
   | [], _ => mkApps t args
   end.
 
-(* Get the branch for a branch of an inductive, i.e. without including parameters of the inductive *)
+(** Get the branch for a branch of an inductive, i.e. without including parameters of the inductive *)
 Definition get_branch_mask (mm : mib_masks) (ind_index : nat) (c : nat) : bitmask :=
   match find (fun '(ind', c', _) => (ind' =? ind_index) && (c' =? c))
              (ctor_masks mm) with
@@ -97,7 +97,7 @@ Definition get_branch_mask (mm : mib_masks) (ind_index : nat) (c : nat) : bitmas
   | None => []
   end.
 
-(* Get mask for a constructor, i.e. combined parameter and branch mask *)
+(** Get mask for a constructor, i.e. combined parameter and branch mask *)
 Definition get_ctor_mask (ind : inductive) (c : nat) : bitmask :=
   match get_mib_masks (inductive_mind ind) with
   | Some mm => param_mask mm ++ get_branch_mask mm (inductive_ind ind) c
@@ -126,7 +126,7 @@ Fixpoint masked {X} (mask : bitmask) (xs : list X) :=
     end
   end.
 
-(* Remove lambda abstractions based on bitmask *)
+(** Remove lambda abstractions based on bitmask *)
 Fixpoint dearg_lambdas (mask : bitmask) (body : term) : term :=
   match body with
   | tLetIn na val body => tLetIn na val (dearg_lambdas mask body)
@@ -141,7 +141,7 @@ Fixpoint dearg_lambdas (mask : bitmask) (body : term) : term :=
 
 
 Definition dearg_branch_body_rec (i : nat) (mask : bitmask) (t : term) : nat * term :=
-  fold_left (fun '(i,t) (bit : bool) => if bit then (i,t {i:=tBox}) else (S i, t)) mask (i,t).
+  fold_left (fun '(i,t) (bit : bool) => if bit then (i,t {i := tBox}) else (S i, t)) mask (i,t).
 
 Lemma dearg_branch_body_rec_count_zeros i mask t :
   (dearg_branch_body_rec i mask t).1 = count_zeros mask + i.
@@ -156,7 +156,7 @@ Qed.
 
 (** Context masks are build by reversing the original mask and
     prepending [false], if the original mask is shorter than the contex *)
-Definition complete_ctx_mask (mask : bitmask) (ctx : list name): bitmask :=
+Definition complete_ctx_mask (mask : bitmask) (ctx : list name) : bitmask :=
   repeat false (#|ctx| - #|mask|) ++ List.rev mask.
 
 Lemma complete_ctx_mask_length mask ctx :
@@ -173,8 +173,14 @@ Definition dearg_branch_body (mask : bitmask) (bctx : list name) (t : term) : li
   let bctx_mask := complete_ctx_mask mask bctx in
   (masked bctx_mask bctx, (dearg_branch_body_rec 0 bctx_mask t).2).
 
-(* Compute dearg_lambdas [true;false] (tLambda (nNamed "a") (tLambda (nNamed "b") (tLambda (nNamed "c") (tApp (tApp (tRel 0) (tRel 1)) (tRel 2))))). *)
-(* Compute dearg_branch_body ([true;false]) ([nNamed "c";nNamed "b"; nNamed "a"]) (tApp (tApp (tRel 0) (tRel 1)) (tRel 2)). *)
+(* Compute dearg_lambdas [true;false]
+                      (tLambda (nNamed "a")
+                        (tLambda (nNamed "b")
+                          (tLambda (nNamed "c")
+                            (tApp (tApp (tRel 0) (tRel 1)) (tRel 2))))). *)
+(* Compute dearg_branch_body [true;false]
+                          [nNamed "c";nNamed "b"; nNamed "a"]
+                          (tApp (tApp (tRel 0) (tRel 1)) (tRel 2)). *)
 
 Definition dearged_npars (mm : option mib_masks) (npars : nat) : nat :=
   match mm with
@@ -222,8 +228,8 @@ Fixpoint dearg_aux (args : list term) (t : term) : term :=
   match t with
   | tApp hd arg => dearg_aux (dearg_aux [] arg :: args) hd
   | tConstruct ind c _ =>
-      (* NOTE: we don't support constructors-as-blocks at the moment,
-         Therefore, we ignore the block argument list assuming it's empty *)
+      (** NOTE: we don't support constructors-as-blocks at the moment,
+          Therefore, we ignore the block argument list assuming it's empty *)
       dearg_single (get_ctor_mask ind c) t args
   | tConst kn => dearg_single (get_const_mask kn) t args
   | tCase (ind, npars) discr brs =>
@@ -245,8 +251,8 @@ Fixpoint dearg_cst_type_top (mask : bitmask) (type : box_type) : box_type :=
   | _, _ => type
   end.
 
-(* Remove lambda abstractions from top level declaration and remove
-   all unused args in applications *)
+(** Remove lambda abstractions from top level declaration and remove
+    all unused args in applications *)
 Definition dearg_cst (kn : kername) (cst : constant_body) : constant_body :=
   let mask := get_const_mask kn in
   {| cst_type := on_snd (dearg_cst_type_top mask) (cst_type cst);
@@ -290,7 +296,7 @@ Definition dearg_decl (kn : kername) (decl : global_decl) : global_decl :=
 Definition dearg_env (Σ : global_env) : global_env :=
   map (fun '(kn, has_deps, decl) => (kn, has_deps, dearg_decl kn decl)) Σ.
 
-(* Validity checks used when invoking the pass and to prove it correct *)
+(** Validity checks used when invoking the pass and to prove it correct *)
 Fixpoint is_dead (rel : nat) (t : term) : bool :=
   match t with
   | tRel i => negb (i =? rel)
@@ -315,10 +321,10 @@ Fixpoint valid_dearg_mask (mask : bitmask) (body : term) : bool :=
   | _, _ => false
   end.
 
-(* INVARIANT: the mask is completed according to the context with [complete_ctx_mask]! *)
+(** INVARIANT: the mask is completed according to the context with [complete_ctx_mask]! *)
 Fixpoint valid_dearg_mask_branch (i : nat) (mask : bitmask) (body : term) : bool :=
   match mask with
-  |  b :: mask =>
+  | b :: mask =>
     (if b then is_dead i body else true) && valid_dearg_mask_branch (S i) mask body
   | [] => true
   end.
@@ -342,12 +348,12 @@ Definition valid_proj (ind : inductive) (npars arg : nat) : bool :=
   | _ => true
   end.
 
-(* Check that all cases and projections in a term are valid according
-   to the masks. They must have the proper number of parameters, and
-   1. For cases, their branches must be compatible with the masks,
+(** Check that all cases and projections in a term are valid according
+    to the masks. They must have the proper number of parameters, and
+    - For cases, their branches must be compatible with the masks,
       i.e. when "true" appears in the mask, the parameter is unused
-   2. For projections, the projected argument must not be removed
-   3. For constructors, that they are not blocks *)
+    - For projections, the projected argument must not be removed
+    - For constructors, that they are not blocks *)
 Fixpoint valid_cases (t : term) : bool :=
   match t with
   | tEvar _ ts => forallb valid_cases ts
@@ -358,7 +364,7 @@ Fixpoint valid_cases (t : term) : bool :=
     valid_cases discr && forallb (valid_cases ∘ snd) brs && valid_case_masks ind npars brs
   | tProj (mkProjection ind npars arg) t => valid_cases t && valid_proj ind npars arg
   | tFix defs _
-  | tCoFix defs _  => forallb (valid_cases ∘ EAst.dbody) defs
+  | tCoFix defs _ => forallb (valid_cases ∘ EAst.dbody) defs
   | tConstruct _ _ (_ :: _) => false (* check whether constructors are not blocks*)
   | _ => true
   end.
@@ -376,13 +382,13 @@ Definition valid_masks_decl (p : kername * bool * global_decl) : bool :=
   | _ => true
   end.
 
-(* Proposition representing whether masks are valid for entire environment.
-   We should be able to prove that our analysis produces masks that satisfy this
-   predicate. *)
+(** Proposition representing whether masks are valid for entire environment.
+    We should be able to prove that our analysis produces masks that satisfy
+    this predicate. *)
 Definition valid_masks_env (Σ : global_env) : bool :=
   forallb valid_masks_decl Σ.
 
-(* Check if all applications are applied enough to be deboxed without eta expansion. *)
+(** Check if all applications are applied enough to be deboxed without eta expansion. *)
 Fixpoint is_expanded_aux (nargs : nat) (t : term) : bool :=
   match t with
   | tBox => true
@@ -394,8 +400,8 @@ Fixpoint is_expanded_aux (nargs : nat) (t : term) : bool :=
   | tApp hd arg => is_expanded_aux 0 arg && is_expanded_aux (S nargs) hd
   | tConst kn => #|get_const_mask kn| <=? nargs
   | tConstruct ind c _ =>
-      (* NOTE: we don't support constructors-as-blocks at the moment,
-         Therefore, we ignore the block argument list assuming it's empty *)
+      (** NOTE: we don't support constructors-as-blocks at the moment,
+          Therefore, we ignore the block argument list assuming it's empty *)
       #|get_ctor_mask ind c| <=? nargs
   | tCase _ discr brs => is_expanded_aux 0 discr && forallb (is_expanded_aux 0 ∘ snd) brs
   | tProj _ t => is_expanded_aux 0 t
@@ -404,12 +410,13 @@ Fixpoint is_expanded_aux (nargs : nat) (t : term) : bool :=
   | tPrim _ => true
   end.
 
-(* Check if all applications are applied enough to be deboxed without eta expansion *)
+(** Check if all applications are applied enough to be deboxed without eta expansion *)
 Definition is_expanded (t : term) : bool :=
   is_expanded_aux 0 t.
 
-(* Like above, but check all bodies in environment. This assumption does not necessarily hold,
-   but we should try to make it hold by eta expansion before quoting *)
+(** Like above, but check all bodies in environment.
+    This assumption does not necessarily hold,
+    but we should try to make it hold by eta expansion before quoting *)
 Definition is_expanded_env (Σ : global_env) : bool :=
   forallb (fun '(kn, decl) =>
              match decl with
@@ -511,11 +518,11 @@ Fixpoint clear_bit (n : nat) (bs : bitmask) : bitmask :=
   | _, _ => []
   end.
 
-(* Pair of bitmask and inductive masks.
-   The first projection is a bitmask of dead local variables, i.e. when a use is found,
-   a bit in this is set to false.
-   The second projection is a list of dead constructor datas. When a use of a constructor
-   parameter is found, this is set to false. *)
+(** Pair of bitmask and inductive masks.
+    The first projection is a bitmask of dead local variables, i.e. when a use is found,
+    a bit in this is set to false.
+    The second projection is a list of dead constructor datas. When a use of a constructor
+    parameter is found, this is set to false. *)
 Definition analyze_state := bitmask × list (kername × mib_masks).
 
 Definition set_used (s : analyze_state) (n : nat) : analyze_state :=
@@ -571,8 +578,8 @@ Definition fold_lefti {A B} (f : nat -> A -> B -> A) :=
 
 Section AnalyzeTop.
   Context (analyze : analyze_state -> term -> analyze_state).
-  (* Analyze iterated let-in and lambdas to find dead variables inside body.
-   Return bitmask of max length n indicating which lambda arguments are unused. *)
+  (** Analyze iterated let-in and lambdas to find dead variables inside body.
+      Return bitmask of max length n indicating which lambda arguments are unused. *)
   Fixpoint analyze_top_level
            (state : analyze_state)
            (max_lams : nat)
@@ -592,8 +599,8 @@ Section AnalyzeTop.
 End AnalyzeTop.
 
 
-(* NOTE: analysis assumes that constructors are in the form [tConstruct ind i [] ],
-   that is, constructors-as-blocks is disabled *)
+(** NOTE: analysis assumes that constructors are in the form [tConstruct ind i [] ],
+    that is, constructors-as-blocks is disabled *)
 Fixpoint analyze (state : analyze_state) (t : term) {struct t} : analyze_state :=
   match t with
   | tBox => state
@@ -605,8 +612,8 @@ Fixpoint analyze (state : analyze_state) (t : term) {struct t} : analyze_state :
   | tApp hd arg => analyze (analyze state hd) arg
   | tConst _ => state
   | tConstruct _ _ _ =>
-      (* NOTE: we don't support constructors-as-blocks at the moment,
-         Therefore, we ignore the block argument list assuming it's empty *)
+      (** NOTE: we don't support constructors-as-blocks at the moment,
+          Therefore, we ignore the block argument list assuming it's empty *)
       state
   | tCase (ind, npars) discr brs =>
     let state := analyze state discr in
@@ -661,7 +668,8 @@ Definition analyze_constant
   | Some body =>
     let max_lams := #|doms| in
     let '(mask, (_, inds)) := analyze_top_level analyze ([], inds) max_lams body in
-    (* NOTE: if all the arguments are logical, we keep the first one in order to prevent contstans like [false_rect] to be evaluated eagerly in the extracted code *)
+    (* NOTE: if all the arguments are logical, we keep the first one in order to prevent
+       contstans like [false_rect] to be evaluated eagerly in the extracted code *)
     if forallb is_box_or_any doms then
       (clear_bit 0 mask, inds)
     else (mask, inds)
@@ -702,7 +710,7 @@ Fixpoint analyze_env
     {| const_masks := consts; ind_masks := inds |}
   end.
 
-(* Remove trailing "false" bits in masks *)
+(** Remove trailing "false" bits in masks *)
 Definition trim_const_masks (cm : list (kername × bitmask)) :=
   map (on_snd (trim_end false)) cm.
 
@@ -718,22 +726,22 @@ Definition trim_ind_masks (im : list (kername × mib_masks)) :=
 
 Import MCMonadNotation.
 
-Definition throwIf (b : bool) (err : string) : (fun x => result x string) unit  :=
+Definition throwIf (b : bool) (err : string) : (fun x => result x string) unit :=
   if b then Err err else Ok tt.
 
 From Coq Require Import String.
 
 Definition dearg_transform
            (overridden_masks : kername -> option bitmask)
-           (* If true, trim ends of constant masks to avoid unnecessary eta expansion. *)
+           (** If true, trim ends of constant masks to avoid unnecessary eta expansion. *)
            (do_trim_const_masks : bool)
-           (* If true, trim ends of constructor masks to avoid unnecessary eta expansion. *)
+           (** If true, trim ends of constructor masks to avoid unnecessary eta expansion. *)
            (do_trim_ctor_masks : bool)
-           (* Check if erased environment is closed *)
+           (** Check if erased environment is closed *)
            (check_closed : bool)
-           (* Check that environment is expanded enough before dearging *)
+           (** Check that environment is expanded enough before dearging *)
            (check_expanded : bool)
-           (* Check that the dearg masks generated by analysis are valid for dearging *)
+           (** Check that the dearg masks generated by analysis are valid for dearging *)
            (check_valid_masks : bool) : ExtractTransform :=
   fun (Σ : global_env) => throwIf (check_closed && negb (env_closed (trans_env Σ)))
         "Erased environment is not closed" ;;

@@ -134,7 +134,7 @@ Section annotate.
         type_flag_to_tRel_kind
          (flag_of_type_impl Σ _ Γ0 (dtype d) _) vl in
       (i :: context_to_erased Γ0 next_vl Γ1 _)%vector.
-  Proof. all:inversion wt;subst;eauto. Qed.
+  Proof. all: inversion wt;subst;eauto. Qed.
 
   Equations? (noeqns) annotate_defs
            Γ
@@ -161,12 +161,14 @@ Fixpoint vec_repeat {A} (a : A) (n : nat) : Vector.t A n :=
 
 Existing Instance PCUICSN.extraction_normalizing.
 
-Definition type_of_impl := type_of canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
+Definition type_of_impl :=
+  type_of canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
 
-Definition erase_type_aux_impl := @erase_type_aux canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
+Definition erase_type_aux_impl :=
+  @erase_type_aux canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
 
 Program Definition erase_type_of Γ erΓ t (wt : welltyped Σ Γ t) : box_type :=
-  let ty := type_of_impl Γ _  t _ in
+  let ty := type_of_impl Γ _ t _ in
   let flag := flag_of_type_impl Σ _ Γ ty _ in
   if conv_ar flag then
     TBox
@@ -213,7 +215,7 @@ Next Obligation.
   eapply typing_wf_local; eauto.
 Qed.
 
-Lemma Forall_mapi:
+Lemma Forall_mapi :
   forall {A B : Type} {n} (P : B -> Prop) (f : nat -> A -> B)
     (l : list A),
   Forall ( fun x => forall i : nat, P (f i x)) l ->
@@ -268,7 +270,7 @@ annot bt (E.tCoFix edefs _) (tCoFix defs _) wt0 er0 =>
   let last_vl := get_last_type_var erΓ in
   let erΓ1 := Vector.append (context_to_erased Γ last_vl (List.rev defs) _) erΓ in
   (bt, annotate_defs annotate_types (Γ,,, fix_context defs) (VectorEq.cast erΓ1 (rev_mapi_app_length _ _)) defs edefs _);
-annot bt (E.tPrim _) _ _ _ => bt;
+annot bt (E.tPrim _) _ _ _ => bt; (* TODO *)
 annot bt _ _ wt0 er0 => !
 }.
 Proof.
@@ -319,7 +321,7 @@ Proof.
     (* admit. *) apply (todo "todo").
     (* compare_decls_conv *)
     (*   PCUICContextConversionTyp.context_conversion *)
-  (* econstructor; eauto. *)
+    (* econstructor; eauto. *)
   - apply inversion_Proj in X as (?&?&?&?&?&?&?&?&?); auto.
     econstructor; eauto.
   - apply inversion_Fix in X as (?&?&?&?&?&?&?); auto.
@@ -441,7 +443,7 @@ Proof.
   - exact (ta.1, (ta.2.1, f _ ta.2.2 _)).
 Defined.
 
-(* [dummy] is used to annotate boxes that a substituted for dead arguments *)
+(** [dummy] is used to annotate boxes that a substituted for dead arguments *)
 Definition annot_dearg_branch_aux {A} i (dummy : A) mask {t} (ta : annots A t)
   : annots A (dearg_branch_body_rec i mask t).2.
 Proof.
@@ -581,7 +583,7 @@ Definition annot_debox_type_decl Σ {decl} (a : global_decl_annots box_type decl
   : global_decl_annots box_type (debox_type_decl Σ decl).
 Proof.
   unfold debox_type_decl.
-  destruct decl;[|exact a|  (destruct o as [p|]; auto; destruct p;exact a)].
+  destruct decl;[|exact a| (destruct o as [p|]; auto; destruct p;exact a)].
   cbn in *.
   (* we have removed type variables from inductives, so adjust type annotations similarly *)
   unfold constant_body_annots in *.
@@ -663,7 +665,7 @@ Defined.
 Module AnnotOptimizePropDiscr.
   Import EOptimizePropDiscr OptimizePropDiscr.
 
-  Definition annots_subst_tBox:
+  Definition annots_subst_tBox :
     forall (n : nat) (t0 : term),
       annots box_type t0 -> annots box_type (ECSubst.csubst tBox n t0).
   Proof.

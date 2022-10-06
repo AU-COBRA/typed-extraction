@@ -1,5 +1,5 @@
-(* Pass that removes discrimination (matches and projections) on things in Prop.
-   This uses MetaCoq's optimization but adapted to run on our environments. *)
+(** Pass that removes discrimination (matches and projections) on things in Prop.
+    This uses MetaCoq's optimization but adapted to run on our environments. *)
 From MetaCoq.TypedExtraction Require Import ExAst.
 From MetaCoq.Erasure Require Import EOptimizePropDiscr.
 
@@ -13,7 +13,7 @@ Definition optimize_decl Σ d :=
   | _ => d
   end.
 
-Lemma trans_env_fresh_global:
+Lemma trans_env_fresh_global :
       forall (kn : Kernames.kername) (g : global_env),
         fresh_globals g ->
         fresh_global kn g ->
@@ -77,5 +77,5 @@ Proof.
   intros ? cl_t cl_env wfg ev.
   rewrite trans_env_optimize_env.
   remember (EEnvMap.GlobalContextMap.make _ _) as Σ0.
-  unshelve eapply (EOptimizePropDiscr.optimize_correct (Σ:=Σ0)) with (t:=t) (v:=v);subst;cbn;eauto.
+  unshelve eapply (EOptimizePropDiscr.optimize_correct (Σ := Σ0)) with (t := t) (v := v);subst;cbn;eauto.
 Qed.

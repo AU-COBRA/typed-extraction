@@ -43,7 +43,7 @@ Proof.
 Qed.
 
 Module PEnv := PCUICAst.PCUICEnvironment.
-Lemma wf_erase_global_decl:
+Lemma wf_erase_global_decl :
   forall (H : EWellformed.EEnvFlags) (k : kername) (g : PCUICAst.PCUICEnvironment.global_decl)
          (decls : list (kername * PCUICAst.PCUICEnvironment.global_decl))
          (univs : Universes.ContextSet.t) retros w wt (Σex : global_env),
@@ -72,11 +72,11 @@ Admitted.
 
 
 Ltac invert_wf :=
-        match goal with
-        | [H:  wf _  |- _] => sq; inversion H;subst;clear H;cbn in *
-        | [H : P.on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
-        | [H : P.on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
-        end.
+  match goal with
+  | [H : wf _ |- _] => sq; inversion H;subst;clear H;cbn in *
+  | [H : P.on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
+  | [H : P.on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+  end.
 
 Lemma wf_erase_global_decls_recursive `{EWellformed.EEnvFlags} :
   forall decls univs retros w seeds (ignored : kername -> bool),
@@ -104,7 +104,7 @@ Proof.
     * sq.
       apply OptimizePropDiscr.trans_env_fresh_global.
       apply fresh_globals_erase_global_decl_rec.
-      change decls with (PEnv.declarations 
+      change decls with (PEnv.declarations
         {| PEnv.universes := univs; PEnv.declarations := decls; PEnv.retroknowledge := retros |}).
       apply PCUICWfEnvImpl.wf_fresh_globals.
       repeat invert_wf;split;auto;split;auto.
@@ -129,7 +129,7 @@ Proof.
   intros cl_t cl_env wfg ev.
   rewrite OptimizePropDiscr.trans_env_optimize_env.
   remember (EEnvMap.GlobalContextMap.make _ _) as Σ0.
-  unshelve eapply (EOptimizePropDiscr.optimize_correct (fl:=default_wcbv_flags) (Σ:=Σ0)) with (t:=t) (v:=v);subst;cbn;eauto.
+  unshelve eapply (EOptimizePropDiscr.optimize_correct (fl := default_wcbv_flags) (Σ := Σ0)) with (t := t) (v := v);subst;cbn;eauto.
 Qed.
 
 
@@ -153,7 +153,7 @@ Proof.
   destruct dearg_transform eqn:dt; cbn -[dearg_transform] in *; [|congruence].
   injection ex as ->.
   destruct wfΣ.
-  eapply erases_correct with (Σ':=trans_env (Erasure.erase_global_decls_deps_recursive (PCUICAst.PCUICEnvironment.declarations Σ)
+  eapply erases_correct with (Σ' := trans_env (Erasure.erase_global_decls_deps_recursive (PCUICAst.PCUICEnvironment.declarations Σ)
                (PCUICAst.PCUICEnvironment.universes Σ) _ (wf_squash (sq w))
                (KernameSet.singleton kn) ignored)) in ev as (erv&erase_to&[erev]);eauto.
   + depelim erase_to;[|easy].
@@ -179,17 +179,17 @@ Qed.
 
 (* Print Assumptions extract_correct. *)
 
-(* There are some assumptions of which almost all are in MetaCoq.
-   From this project is only assume_env_wellformed assumption which is
-   used to assume that the environments we extract are
-   wellformed. MetaCoq's safe checker does not run from within Coq, so
-   we cannot type check the environments. However, our environments
-   are unquoted directly from Coq's kernel where they are already
-   welltyped, so this is justified (and the same assumption is used in
-   MetaCoq when they run their erasure).
+(** There are some assumptions of which almost all are in MetaCoq.
+    From this project is only assume_env_wellformed assumption which is
+    used to assume that the environments we extract are
+    wellformed. MetaCoq's safe checker does not run from within Coq, so
+    we cannot type check the environments. However, our environments
+    are unquoted directly from Coq's kernel where they are already
+    welltyped, so this is justified (and the same assumption is used in
+    MetaCoq when they run their erasure).
 
-   The rest of the assumptions are normal MetaCoq assumptions
-   (which are justified in Coq Coq Correct!).
+    The rest of the assumptions are normal MetaCoq assumptions
+    (which are justified in Coq Coq Correct!).
 
-   [JMeq.JMeq_eq] leaks from the use of some tactics and probably can be avoided.
+    [JMeq.JMeq_eq] leaks from the use of some tactics and probably can be avoided.
  *)

@@ -34,7 +34,7 @@ Section Eta.
 
   Fixpoint remove_top_prod (t : Ast.term) (n : nat) :=
     match n,t with
-    | O, _  => t
+    | O, _ => t
     | S m, tProd nm ty1 ty2 => remove_top_prod ty2 m
     | _, _ => t
     end.
@@ -47,7 +47,12 @@ Section Eta.
       [args] -- arguments to which the term is applied;
       [ty] -- the term's type;
       [count] -- how much to expand *)
-  Definition eta_single (Γ : list term) (t : Ast.term) (args : list Ast.term) (ty : Ast.term) (count : nat): term :=
+  Definition eta_single (Γ : list term)
+                        (t : Ast.term)
+                        (args : list Ast.term)
+                        (ty : Ast.term)
+                        (count : nat)
+                        : term :=
     let needed := count - #|args| in
     let prev_args := map (lift0 needed) args in
     let eta_args := rev_map tRel (seq 0 needed) in
@@ -142,7 +147,7 @@ Definition from_oib (ds : dearg_set) (kn : kername) (ind_index : nat) (oib : one
       | None => None
       end in
   fold_lefti (fun i acc c => match f i c with Some v => v :: acc| None => acc end)
-             0  oib.(ind_ctors) [].
+             0 oib.(ind_ctors) [].
 
 Fixpoint get_eta_info (Σ : global_declarations) (ds : dearg_set) : ctors_info * constansts_info :=
   match Σ with
@@ -201,7 +206,7 @@ Definition eta_global_env_template
   gen_defs_and_proofs (declarations Σ) (declarations Σext) mpath suffix seeds;;
   ret Σext.
 
-(* Mainly for testing purposes *)
+(** Mainly for testing purposes *)
 Definition eta_expand_def
            {A}
            (overridden_masks : kername -> option bitmask)
@@ -232,7 +237,7 @@ Module Examples.
 
   Module Ex1.
   Definition partial_app_pair :=
-    let p : forall B : Type, unit -> B -> unit × B:= @pair unit in
+    let p : forall B : Type, unit -> B -> unit × B := @pair unit in
     p bool tt true.
   End Ex1.
   MetaCoq Quote Recursively Definition p_app_pair_syn := Ex1.partial_app_pair.
@@ -283,7 +288,7 @@ Module Examples.
   MetaCoq Run (eta_expand_def (fun _ => None) true true partial_app3).
 
   Module Ex3.
-  Definition inc_balance (st :  nat × nat) (new_balance : nat)
+  Definition inc_balance (st : nat × nat) (new_balance : nat)
                  (p : (0 <=? new_balance) = true) :=
     (st.1 + new_balance, st.2).
 
@@ -301,7 +306,7 @@ Module Examples.
               ).
 
   Module Ex4.
-    (* Partially applied constructor of a recursive inductive type *)
+    (** Partially applied constructor of a recursive inductive type *)
     Definition papp_cons A (x : A) (xs : list A) := let my_cons := @cons in
                                                       my_cons A x xs.
 
@@ -310,7 +315,7 @@ Module Examples.
 
   Module Ex5.
 
-    (* Mutual inductive *)
+    (** Mutual inductive *)
     Inductive even : nat -> Type :=
     | even_O : even 0
     | even_S : forall n, odd n -> even (S n)
@@ -336,7 +341,7 @@ Module Examples.
       let part_app := eApp _ (eFn unit "f" (eNat unit 0)) in
       part_app (eCons _ (eNat unit 0) (eNil _)).
 
-    MetaCoq Run (eta_expand_def (fun _ => None) false false  papp_expr).
+    MetaCoq Run (eta_expand_def (fun _ => None) false false papp_expr).
   End Ex5.
 
 End Examples.

@@ -60,7 +60,7 @@ Definition betared_globals_template
   gen_defs_and_proofs Σ Σbeta mpath suffix seeds;;
   ret Σbeta.
 
-(* Mainly for testing purposes *)
+(** Mainly for testing purposes *)
 Definition betared_def {A}
            (def : A) : TemplateMonad _ :=
   mpath <- tmCurrentModPath tt;;

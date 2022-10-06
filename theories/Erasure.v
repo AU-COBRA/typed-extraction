@@ -55,7 +55,7 @@ Context {X_type : abstract_env_ext_impl}
         {X : X_type.π1}.
 
 Local Definition heΣ Σ (wfΣ : abstract_env_ext_rel X Σ) :
-    ∥ wf_ext Σ ∥ :=  abstract_env_ext_wf _ wfΣ.
+    ∥ wf_ext Σ ∥ := abstract_env_ext_wf _ wfΣ.
 Local Definition HΣ Σ (wfΣ : abstract_env_ext_rel X Σ) :
     ∥ wf Σ ∥ := abstract_env_ext_sq_wf _ _ _ wfΣ.
 
@@ -134,7 +134,7 @@ Import ErasureFunction.
 
 Lemma not_prod_or_sort_hnf {Σ} {wfΣ : abstract_env_ext_rel X Σ} {Γ : context} {t : term}
       {h : forall Σ : global_env_ext, abstract_env_ext_rel X Σ -> welltyped Σ Γ t} :
-  negb (is_prod_or_sort (hnf (X_type:=X_type) Γ t h)) ->
+  negb (is_prod_or_sort (hnf (X_type := X_type) Γ t h)) ->
   ~Is_conv_to_Arity Σ Γ t.
 Proof.
   intros nar car.
@@ -413,7 +413,7 @@ fot_viewc t := fot_view_other t _.
 Lemma tywt {Γ T Σ0} (isT : ∥isType Σ0 Γ T∥) : welltyped Σ0 Γ T.
 Proof. destruct isT. now apply isType_welltyped. Qed.
 
-(* Definition of normalized arities *)
+(** Definition of normalized arities *)
 Definition arity_ass := aname * term.
 
 Fixpoint mkNormalArity (l : list arity_ass) (s : Universe.t) : term :=
@@ -549,7 +549,7 @@ Proof.
   - abstract (intros conv; apply Is_conv_to_Arity_conv_arity in conv; tauto).
 Defined.
 
-(* type_flag of a term indexed by the term's type. For example, for
+(** type_flag of a term indexed by the term's type. For example, for
       t    :   T
    eq_refl : 5 = 5 : Prop
    we would pass T to flag_of_type below, and it would give
@@ -559,11 +559,11 @@ Defined.
 *)
 Record type_flag {Σ Γ T} :=
   build_flag
-    { (* Type is proposition when fully applied, i.e. either
+    { (** Type is proposition when fully applied, i.e. either
          (T : Prop, or T a0 .. an : Prop). If this is an arity,
          indicates whether this is a logical arity (i.e. into Prop). *)
       is_logical : bool;
-      (* Arity that this type is convertible to *)
+      (** Arity that this type is convertible to *)
       conv_ar : conv_arity_or_not Σ Γ T;
     }.
 
@@ -582,7 +582,7 @@ Equations(noeqns) flag_of_type (Γ : context) (T : term)
          (isT : forall Σ0 (wfΣ : abstract_env_ext_rel X Σ0), ∥isType Σ0 Γ T∥)
   : type_flag rΣ Γ T
   by wf ((Γ;T; (tywt (isT rΣ wfrΣ))) : (∑ Γ t, welltyped rΣ Γ t)) erase_rel :=
-flag_of_type Γ T isT with inspect (hnf (X_type:=X_type) Γ T (fun Σ h => (tywt (isT Σ h)))) :=
+flag_of_type Γ T isT with inspect (hnf (X_type := X_type) Γ T (fun Σ h => (tywt (isT Σ h)))) :=
   | exist T0 is_hnf with fot_viewc T0 := {
     | fot_view_prod na A B with flag_of_type (Γ,, vass na A) B _ := {
       | flag_cod := {| is_logical := is_logical flag_cod;
@@ -598,7 +598,7 @@ flag_of_type Γ T isT with inspect (hnf (X_type:=X_type) Γ T (fun Σ h => (tywt
                                conv_ar := inl {| conv_ar_context := [];
                                                  conv_ar_univ := univ; |} |} ;
     | fot_view_other T0 discr
-        with infer X_type X Γ  _ T0 _  :=
+        with infer X_type X Γ _ T0 _ :=
         {
       | @existT K princK with inspect (reduce_to_sort Γ K _) := {
         | exist (Checked_comp (existT _ univ red_univ)) eq :=
@@ -611,7 +611,7 @@ flag_of_type Γ T isT with inspect (hnf (X_type:=X_type) Γ T (fun Σ h => (tywt
 Ltac reduce_term_sound :=
   unfold hnf in *;
   match goal with
-  | [H: reduce_term ?flags _ _ ?Γ ?t ?wft = ?a |- _] =>
+  | [H : reduce_term ?flags _ _ ?Γ ?t ?wft = ?a |- _] =>
       let r := fresh "r" in
       pose proof (@reduce_term_sound _ flags _ _ Γ t wft _ (ltac:(eassumption))) as [r];
       rewrite -> H in r
@@ -641,7 +641,7 @@ Next Obligation.
   apply Is_conv_to_Arity_conv_arity;sq;auto.
   specialize r as r'.
   destruct r'.
-  assert (prod_conv: Is_conv_to_Arity rΣ Γ (tProd na A B)).
+  assert (prod_conv : Is_conv_to_Arity rΣ Γ (tProd na A B)).
   { eapply Is_conv_to_Arity_red;eauto.
     apply conv_arity_Is_conv_to_Arity;assumption. }
   destruct prod_conv as [tm [[redtm] ar]].
@@ -710,7 +710,7 @@ Next Obligation.
   assert (∥ wf_ext rΣ ∥) by now apply heΣ.
   assert (tyT : ∥ isType rΣ Γ T ∥) by eauto.
   assert (tyNf : ∥ isType rΣ Γ nf ∥).
-  { sq.  eapply isType_red;eauto. }
+  { sq. eapply isType_red;eauto. }
   sq.
   destruct tyT as [u tyT].
   destruct tyNf as [v tyNf].
@@ -753,11 +753,11 @@ Equations erase_type_viewc (t : term) : erase_type_view t := {
   }.
 
 Inductive tRel_kind :=
-(* tRel refers to type variable n in the list of type vars *)
+(** tRel refers to type variable n in the list of type vars *)
 | RelTypeVar (n : nat)
-(* tRel refers to an inductive type (used in constructors of inductives) *)
+(** tRel refers to an inductive type (used in constructors of inductives) *)
 | RelInductive (ind : inductive)
-(* tRel refers to something else, for example something logical or a value *)
+(** tRel refers to something else, for example something logical or a value *)
 | RelOther.
 
 Equations(noeqns) erase_type_aux
@@ -765,12 +765,12 @@ Equations(noeqns) erase_type_aux
           (erΓ : Vector.t tRel_kind #|Γ|)
           (t : term)
           (isT : forall Σ (wfΣ : PCUICWfEnv.abstract_env_ext_rel X Σ), ∥isType Σ Γ t∥)
-          (* The index of the next type variable that is being
-             produced, or None if no more type variables should be
-             produced (when not at the top level).  For example, in
-             Type -> nat we should erase to nat with one type var,
-             while in (Type -> nat) -> nat we should erase to (TBox ->
-             nat) -> nat with no type vars. *)
+          (** The index of the next type variable that is being
+              produced, or None if no more type variables should be
+              produced (when not at the top level). For example, in
+              Type -> nat we should erase to nat with one type var,
+              while in (Type -> nat) -> nat we should erase to (TBox ->
+              nat) -> nat with no type vars. *)
           (next_tvar : option nat) : list name × box_type
   by wf ((Γ; t; (tywt (isT rΣ wfrΣ))) : (∑ Γ t, welltyped rΣ Γ t)) erase_rel :=
 erase_type_aux Γ erΓ t isT next_tvar
@@ -791,28 +791,28 @@ erase_type_aux Γ erΓ t isT next_tvar
       | et_view_sort _ := ([], TBox);
 
       | et_view_prod na A B with flag_of_type Γ A _ := {
-          (* For logical things we just box and proceed *)
+          (** For logical things we just box and proceed *)
         | {| is_logical := true |} =>
           on_snd
             (TArr TBox)
             (erase_type_aux (Γ,, vass na A) (RelOther :: erΓ)%vector B _ next_tvar);
 
-          (* If the type isn't an arity now, then the domain is a "normal" type like nat. *)
+          (** If the type isn't an arity now, then the domain is a "normal" type like nat. *)
         | {| conv_ar := inr _ |} :=
           let '(_, dom) := erase_type_aux Γ erΓ A _ None in
           on_snd
             (TArr dom)
             (erase_type_aux (Γ,, vass na A) (RelOther :: erΓ)%vector B _ next_tvar);
 
-        (* Ok, so it is an arity. We add type variables for all
-           arities (even non-sorts) because more things are typable without
-           coercions this way. In particular, type schemes only used
-           in contravariant positions extract to something typable
-           even without higher-kinded types. For example:
-           Definition test (T : Type -> Type) (x : T nat) (y : T bool) : nat := 0.
-           Definition bar := test option None None.
-           Here [bar] is perfectly extractable without coercions if T becomes a type
-           variable. *)
+        (** Ok, so it is an arity. We add type variables for all
+            arities (even non-sorts) because more things are typable without
+            coercions this way. In particular, type schemes only used
+            in contravariant positions extract to something typable
+            even without higher-kinded types. For example:
+            Definition test (T : Type -> Type) (x : T nat) (y : T bool) : nat := 0.
+            Definition bar := test option None None.
+            Here [bar] is perfectly extractable without coercions if T becomes a type
+            variable. *)
 
         | _ =>
           let var :=
@@ -845,11 +845,11 @@ erase_type_aux Γ erΓ t isT next_tvar
               | _ => fun _ => TAny
               end eq_refl in
 
-          (* Now for heads that can take args, add args.
-             Otherwise drop all args. *)
+          (** Now for heads that can take args, add args.
+              Otherwise drop all args. *)
           if can_have_args hdbt then
             let erase_arg (a : term) (i : In a decomp_args) : box_type :=
-                let (aT, princaT) := infer X_type X Γ  _ a _  in
+                let (aT, princaT) := infer X_type X Γ _ a _ in
                 match flag_of_type Γ aT _ with
                 | {| is_logical := true |} => TBox
                 | {| conv_ar := car |} =>
@@ -873,7 +873,7 @@ erase_type_aux Γ erΓ t isT next_tvar
     }.
 Ltac wfAbstractEnv :=
 match goal with
-  | [H: ?Σ ∼_ext ?X |- _] =>
+  | [H : ?Σ ∼_ext ?X |- _] =>
       pose proof (@abstract_env_ext_wf _ _ _ _ X Σ H)
   end.
 Solve All Obligations with
@@ -888,7 +888,7 @@ Next Obligation.
   destruct (isT _ wfrΣ) as [(? & typ)].
   assert (∥ wf rΣ ∥) by now apply HΣ. sq.
   destruct r.
-  eapply subject_reduction with (u:=tRel i) in typ; eauto.
+  eapply subject_reduction with (u := tRel i) in typ; eauto.
   apply inversion_Rel in typ as (? & _ & ? & _);[|easy].
   now apply nth_error_Some.
 Qed.
@@ -994,10 +994,10 @@ Definition type_var_info_of_flag (na : aname) {Σ : global_env_ext} {Γ t} (w : 
      tvar_is_arity := if is_arity w (conv_ar f) then true else false;
      tvar_is_sort := if is_sort (conv_ar f) then true else false; |}.
 
-(* For a non-lambda type scheme, i.e.
-   t : T1 -> T2 -> ... -> Tn -> Type
-   where t is not a lambda, finish erasing it as a type scheme
-   by repeatedly eta expanding it *)
+(** For a non-lambda type scheme, i.e.
+    t : T1 -> T2 -> ... -> Tn -> Type
+    where t is not a lambda, finish erasing it as a type scheme
+    by repeatedly eta expanding it *)
 Equations (noeqns) erase_type_scheme_eta
           (Γ : context)
           (erΓ : Vector.t tRel_kind #|Γ|)
@@ -1044,7 +1044,7 @@ Qed.
 Next Obligation.
   assert (∥ wf rΣ ∥) by now apply HΣ . sq.
   apply typing_wf_local in typ as wfl.
-  assert (wflext: wf_local rΣ (Γ,, vass na A)).
+  assert (wflext : wf_local rΣ (Γ,, vass na A)).
   { apply validity in typ; auto.
     apply isType_tProd in typ as (_ & typ); auto.
     eapply isType_wf_local; eauto. }
@@ -1171,9 +1171,9 @@ Proof.
     + sq;eapply validity;eauto.
     + destruct wt.
       eexists; eassumption.
-  -  assert (rΣ = Σ).
-     { eapply abstract_env_ext_irr;eauto. }
-     easy.
+  - assert (rΣ = Σ).
+    { eapply abstract_env_ext_irr;eauto. }
+    easy.
   - assert (rΣ = Σ).
     { eapply abstract_env_ext_irr;eauto. }
     subst.
@@ -1195,7 +1195,7 @@ Equations? (noeqns) erase_ind_arity
           (t : term)
           (isT : forall Σ (wfΣ : PCUICWfEnv.abstract_env_ext_rel X Σ), ∥isType Σ Γ t∥) : list type_var_info
   by wf ((Γ; t; tywt (isT _ wfrΣ)) : (∑ Γ t, welltyped rΣ Γ t)) erase_rel :=
-erase_ind_arity Γ t isT with inspect (hnf (X_type:=X_type) Γ t (fun Σ h => (tywt (isT Σ h)))) := {
+erase_ind_arity Γ t isT with inspect (hnf (X_type := X_type) Γ t (fun Σ h => (tywt (isT Σ h)))) := {
   | exist (tProd na A B) hnf_eq =>
     let hd := type_var_info_of_flag na (HΣ _ wfrΣ)(flag_of_type Γ A _) in
     let tl := erase_ind_arity (Γ,, vass na A) B _ in
@@ -1210,7 +1210,7 @@ Proof.
   - assert (∥ wf_ext Σ ∥) by (now apply heΣ);
       assert (rΣ = Σ) by (eapply abstract_env_ext_irr;eauto);subst;
       reduce_term_sound; destruct r; eauto with erase.
-  -  reduce_term_sound; destruct r; eauto with erase.
+  - reduce_term_sound; destruct r; eauto with erase.
 Qed.
 
 Definition ind_aname (oib : PCUICEnvironment.one_inductive_body) :=
@@ -1241,7 +1241,7 @@ Proof.
   match goal with
   | |- (?f' _ _ _ _).π1 = _ => set (f := f')
   end.
-  assert (H: forall oibs n Γ erΓ, (f oibs n Γ erΓ).π1 = (f oibs 0 [] []%vector).π1 ++ Γ).
+  assert (H : forall oibs n Γ erΓ, (f oibs n Γ erΓ).π1 = (f oibs 0 [] []%vector).π1 ++ Γ).
   { clear.
     intros oibs.
     induction oibs as [|oib oibs IH]; [easy|].
@@ -1271,8 +1271,8 @@ Equations view_prodc (t : term) : view_prod t :=
 | tProd na A B => view_prod_prod na A B;
 | t => view_prod_other t _.
 
-(* Constructors are treated slightly differently to types as we always
-   generate type variables for parameters *)
+(** Constructors are treated slightly differently to types as we always
+    generate type variables for parameters *)
 Equations? (noeqns) erase_ind_ctor
           (Γ : context)
           (erΓ : Vector.t tRel_kind #|Γ|)
@@ -1305,7 +1305,7 @@ Definition erase_ind_body
         (mind : kername)
         (mib : PCUICEnvironment.mutual_inductive_body)
         (oib : PCUICEnvironment.one_inductive_body)
-        (wt : ∥∑i, on_ind_body cumulSpec0  (lift_typing typing) rΣ mind mib i oib∥) : one_inductive_body.
+        (wt : ∥∑i, on_ind_body cumulSpec0 (lift_typing typing) rΣ mind mib i oib∥) : one_inductive_body.
 Proof.
   unshelve refine (
   let is_propositional :=
@@ -1332,7 +1332,7 @@ Proof.
   let ctors := map_In (PCUICEnvironment.ind_ctors oib) erase_ind_ctor in
 
   let erase_ind_proj (p : PCUICEnvironment.projection_body) (is_in : In p (PCUICEnvironment.ind_projs oib)) :=
-      (p.(PCUICEnvironment.proj_name), TBox) (* todo *) in
+      (p.(PCUICEnvironment.proj_name), TBox) (* TODO *) in
 
   let projs := map_In (PCUICEnvironment.ind_projs oib) erase_ind_proj in
 
@@ -1343,22 +1343,22 @@ Proof.
      ind_ctors := ctors;
      ind_projs := projs |}).
   all: intros;assert (rΣ = Σ) by (eapply abstract_env_ext_irr;eauto);subst.
-  -  abstract (
-         destruct wt as [wt];sq;
-         exact (onArity wt.π2)).
   - abstract (
-        destruct p;
-        cbn in *;
-        destruct wt as [[ind_index wt]];
-        pose proof (onConstructors wt) as on_ctors;
-        unfold on_constructors in *;
-        induction on_ctors; [easy|];
-        destruct is_in as [->|later]; [|easy];
-        constructor;
-        destruct (on_ctype r) as (s & typ);
-        rewrite <- (arities_contexts_1 mind) in typ;
-        cbn in *;
-        now exists s).
+      destruct wt as [wt];sq;
+      exact (onArity wt.π2)).
+  - abstract (
+      destruct p;
+      cbn in *;
+      destruct wt as [[ind_index wt]];
+      pose proof (onConstructors wt) as on_ctors;
+      unfold on_constructors in *;
+      induction on_ctors; [easy|];
+      destruct is_in as [->|later]; [|easy];
+      constructor;
+      destruct (on_ctype r) as (s & typ);
+      rewrite <- (arities_contexts_1 mind) in typ;
+      cbn in *;
+      now exists s).
 Defined.
 
 Program Definition erase_ind
@@ -1397,8 +1397,8 @@ Local Existing Instance extraction_checker_flags.
 Import ExAst.
 
 Definition fake_guard_impl : FixCoFix -> global_env_ext -> PCUICEnvironment.context
-                             -> BasicAst.mfixpoint PCUICAst.term -> bool
-  := fun fix_cofix Σ Γ mfix => true.
+                             -> BasicAst.mfixpoint PCUICAst.term -> bool :=
+  fun fix_cofix Σ Γ mfix => true.
 
 Axiom fake_guard_correct : forall (fix_cofix : FixCoFix) (Σ : global_env_ext)
                     (Γ : PCUICEnvironment.context) (mfix : BasicAst.mfixpoint PCUICAst.term),
@@ -1413,7 +1413,8 @@ Program Definition erase_global_decl
         (wfΣext : ∥ wf_ext Σext ∥)
         (kn : kername)
         (decl : PCUICEnvironment.global_decl)
-        (wt : ∥on_global_decl cumulSpec0 (lift_typing typing) Σext kn decl∥) : global_decl :=
+        (wt : ∥on_global_decl cumulSpec0 (lift_typing typing) Σext kn decl∥)
+        : global_decl :=
   match decl with
   | PCUICEnvironment.ConstantDecl cst =>
     match @erase_constant_decl canonical_abstract_env_ext_impl _ Σext _ cst _ with
@@ -1458,9 +1459,9 @@ Definition decl_deps (decl : global_decl) : KernameSet.t :=
   | _ => KernameSet.empty
   end.
 
-(* Erase the global declarations by the specified names and their
-   non-erased dependencies recursively. Ignore dependencies for which
-   [ignore_deps] returnes [true] *)
+(** Erase the global declarations by the specified names and their
+    non-erased dependencies recursively. Ignore dependencies for which
+    [ignore_deps] returnes [true] *)
 Program Fixpoint erase_global_decls_deps_recursive
         (Σ : PCUICEnvironment.global_declarations)
         (universes : ContextSet.t)
@@ -1473,10 +1474,10 @@ Program Fixpoint erase_global_decls_deps_recursive
   | (kn, decl) :: Σ =>
     let Σext := (Σ, universes_decl_of_decl decl) in
     if KernameSet.mem kn include then
-      (* We still erase ignored inductives and constants for two reasons:
-         1. For inductives, we want to allow pattern matches on them and we need
-         information about them to print names.
-         2. For constants, we use their type to do deboxing. *)
+      (** We still erase ignored inductives and constants for two reasons:
+          - For inductives, we want to allow pattern matches on them and we need
+            information about them to print names.
+          - For constants, we use their type to do deboxing. *)
       let decl := erase_global_decl ((mk_global_env universes Σ retroknowledge), PCUICLookup.universes_decl_of_decl decl) _ kn decl _ in
       let with_deps := negb (ignore_deps kn) in
       let new_deps := if with_deps then decl_deps decl else KernameSet.empty in
@@ -1489,7 +1490,7 @@ Program Fixpoint erase_global_decls_deps_recursive
   end.
 Ltac invert_wf :=
   match goal with
-  | [H: ∥ wf _ ∥ |- _] => sq; inversion H;subst;clear H;cbn in *
+  | [H : ∥ wf _ ∥ |- _] => sq; inversion H;subst;clear H;cbn in *
   | [H : on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
   end.

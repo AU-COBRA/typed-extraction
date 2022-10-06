@@ -186,19 +186,19 @@ Definition annot_transform_type (t : ExtractTransform) :=
     | Err _ => unit
     end.
 
-(* More utility functions *)
+(** * More utility functions *)
 
 Fixpoint Edecompose_lam_annot (t : term) : (annots t) -> (list BasicAst.name) × (∑t, annots t) :=
   match t return annots t -> (list BasicAst.name) × (∑t, annots t) with
   | tLambda n b => fun '(bt, a) =>
-      let '(ns, (b; a)) := Edecompose_lam_annot b a  in
+      let '(ns, (b; a)) := Edecompose_lam_annot b a in
       (n :: ns, (b; a))
   | t => fun bt => ([], (t; bt))
   end.
 
-Fixpoint Edecompose_app_annot (t : term) : (annots t) -> (∑t, annots t) × (list (∑t, annots t))  :=
+Fixpoint Edecompose_app_annot (t : term) : (annots t) -> (∑t, annots t) × (list (∑t, annots t)) :=
   match t return annots t -> (∑t, annots t) × list (∑t, annots t) with
-  | tApp f a => fun '(bt, (fa, arga)) => 
+  | tApp f a => fun '(bt, (fa, arga)) =>
       let '(ba, l) := Edecompose_app_annot f fa in
       (ba, (a; arga) :: l)
   | t => fun bt => ((t; bt), [])

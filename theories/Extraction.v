@@ -1,4 +1,4 @@
-(* This file provides the main function for invoking our extraction. *)
+(** This file provides the main function for invoking our extraction. *)
 From Coq Require Import String.
 From MetaCoq.TypedExtraction Require Import Erasure.
 From MetaCoq.TypedExtraction Require Import Optimize.
@@ -27,16 +27,16 @@ Definition is_empty_type_decl (d : ExAst.global_decl) : bool :=
   | ExAst.InductiveDecl mib =>
     match mib.(ExAst.ind_bodies) with
     | oib :: _ => match oib.(ExAst.ind_ctors) with [] => true | _ => false end
-    | _ => false (* NOTE: this should not happen, the list of bodies should not be empty for a well-formed inductive  *)
+    | _ => false (** NOTE: this should not happen, the list of bodies should not be empty for a well-formed inductive *)
     end
   | ExAst.TypeAliasDecl _ => false
   end.
 
 Record extract_pcuic_params :=
-  { (* Whether to remove discrimination (matches and projections) on things in Prop.
-     Necessary to run the transforms. *)
+  { (** Whether to remove discrimination (matches and projections) on things in Prop.
+        Necessary to run the transforms. *)
     optimize_prop_discr : bool;
-    (* The transforms to apply after extraction. Only run when optimize_prop_discr is true. *)
+    (** The transforms to apply after extraction. Only run when optimize_prop_discr is true. *)
     extract_transforms : list ExtractTransform; }.
 
 
@@ -98,20 +98,21 @@ Next Obligation.
 Qed.
 
 Record extract_template_env_params :=
-  { (* The transforms to apply at the template coq level, before translating to PCUIC and extracting.
-     After performing all the transforms, the pipiline generates proofs that
-     the transformed terms are convertible to the originals. *)
+  { (** The transforms to apply at the template coq level, before translating to
+        PCUIC and extracting.
+        After performing all the transforms, the pipiline generates proofs that
+        the transformed terms are convertible to the originals. *)
     template_transforms : list TemplateTransform;
 
-    (* Function to use to check wellformedness of the environment *)
+    (** Function to use to check wellformedness of the environment *)
     check_wf_env_func : forall Σ, result (∥wf Σ∥) string;
     pcuic_args : extract_pcuic_params }.
 
 Import MCMonadNotation.
 
 Definition check_wf_and_extract (params : extract_template_env_params)
-           (Σ : global_env) (seeds : KernameSet.t) (ignore : kername -> bool)
-  := wfΣ <- check_wf_env_func params Σ;;
+           (Σ : global_env) (seeds : KernameSet.t) (ignore : kername -> bool) :=
+  wfΣ <- check_wf_env_func params Σ;;
   extract_pcuic_env (pcuic_args params) Σ wfΣ seeds ignore.
 
 Definition extract_template_env_general
@@ -152,16 +153,16 @@ Definition extract_template_env_certifying_passes
     | Err e => tmFail e
   end.
 
-(* MetaCoq's safe checker does not run from within Coq, only when extracting.
-   To work around this we assume environments are well formed when extracting
-   from within Coq. This is justified since our environments are produced by quoting
-   and thus come directly from Coq, where they have already been type checked. *)
+(** MetaCoq's safe checker does not run from within Coq, only when extracting.
+    To work around this we assume environments are well formed when extracting
+    from within Coq. This is justified since our environments are produced by quoting
+    and thus come directly from Coq, where they have already been type checked. *)
 Axiom assume_env_wellformed : forall Σ, ∥wf Σ∥.
 
-(* Extract an environment with some minimal checks. This assumes the environment
-   is well-formed (to make it computable from within Coq) but furthermore checks that the
-   erased context is closed, expanded and that the masks are valid before dearging.
-   Suitable for extraction of programs **from within Coq**. *)
+(** Extract an environment with some minimal checks. This assumes the environment
+    is well-formed (to make it computable from within Coq) but furthermore checks that the
+    erased context is closed, expanded and that the masks are valid before dearging.
+    Suitable for extraction of programs **from within Coq**. *)
 Definition extract_within_coq : extract_template_env_params :=
   {| template_transforms := [];
      check_wf_env_func Σ := Ok (assume_env_wellformed Σ);
@@ -171,23 +172,23 @@ Definition extract_within_coq : extract_template_env_params :=
 
 Definition extract_template_env_within_coq := extract_template_env extract_within_coq.
 
-(* returns a list of constructor names and the name of the inductive associated *)
+(** [get_projections] returns a list of constructor names and the name of the inductive associated *)
 Definition get_projections (env : ExAst.global_env) : list (ident * ExAst.one_inductive_body) :=
   let get_projs (d : ExAst.global_decl) : list (ident * ExAst.one_inductive_body) :=
     match d with
-    | ExAst.InductiveDecl mind => 
+    | ExAst.InductiveDecl mind =>
       (* We assume no mutually inductive definitions *)
       match mind.(ExAst.ind_bodies) with
       (* pair every constructor with the inductive's name *)
-      | [oib] => 
+      | [oib] =>
         match oib.(ExAst.ind_ctors), oib.(ExAst.ind_projs) with
         (* case 1-ind with primitive projections *)
         | [ctor],_::_ => map (fun '(na, _) => (na, oib)) oib.(ExAst.ind_projs)
-        (*case 1-ind without primitive projections *)
-        | [(_,ctor_args,_)],[] => 
+        (* case 1-ind without primitive projections *)
+        | [(_,ctor_args,_)],[] =>
           (* let is_named '(nm,_) := match nm with nNamed _ => true | _ => false end in *)
           (* let named_args := filter is_named ctor_args in *)
-          map (fun '(na, _) =>(string_of_name na, oib)) ctor_args
+          map (fun '(na, _) => (string_of_name na, oib)) ctor_args
         | _,_ => []
         end
       | _ => []

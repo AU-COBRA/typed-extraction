@@ -74,20 +74,20 @@ Definition add_suffix_global_env (mpath : modpath) (suffix : string) (expansion_
               cst_universes := cb.(cst_universes);
               cst_relevance := cb.(cst_relevance) |}) Σ.
 
-Definition generate_proof_term (ty: term) (kn1 kn2 : kername) : term × term :=
+Definition generate_proof_term (ty : term) (kn1 kn2 : kername) : term × term :=
   let proof_ty :=
       tApp <% @eq %> [ty; tConst kn1 []; tConst kn2 []] in
   let proof_body :=
       tApp <% @eq_refl %> [ty; tConst kn2 []] in
       (proof_ty, proof_body).
 
-Definition gen_prog (ty body : term) (kn : kername) : TemplateMonad unit
-  := tmBind (tmUnquoteTyped Type ty)
-            (fun A => ucst <- tmUnquoteTyped A body ;;
-                   tmDefinition kn.2 ucst;;
-                   ret tt).
+Definition gen_prog (ty body : term) (kn : kername) : TemplateMonad unit :=
+  tmBind (tmUnquoteTyped Type ty)
+         (fun A => ucst <- tmUnquoteTyped A body ;;
+                  tmDefinition kn.2 ucst;;
+                  ret tt).
 
-Definition gen_proof (suffix : string) (Σ : global_declarations) (mpath : modpath) (kn : kername)  : TemplateMonad unit :=
+Definition gen_proof (suffix : string) (Σ : global_declarations) (mpath : modpath) (kn : kername) : TemplateMonad unit :=
   match lookup_global Σ kn with
   | Some (ConstantDecl cb) =>
     let kn_after := (mpath, get_def_name kn ++ suffix) in
@@ -117,7 +117,7 @@ Definition map_global_env_decls (f : global_declarations -> global_declarations)
     for (syntactic) equality. If they are not equal, we expect them to be convertible, so
     we generate a new definition and save the name to [affected] list, which is returned
     when we traversed all definition in [Σ1] *)
-Definition traverse_env (mpath : modpath) (suffix: string) (Σ1 Σ2 : global_declarations) :=
+Definition traverse_env (mpath : modpath) (suffix : string) (Σ1 Σ2 : global_declarations) :=
   let f := fix go (affected : KernameSet.t) (dΣ1 dΣ2 : global_declarations) : TemplateMonad KernameSet.t :=
       match dΣ1 with
       | [] => ret affected
@@ -147,9 +147,13 @@ Definition traverse_env (mpath : modpath) (suffix: string) (Σ1 Σ2 : global_dec
    definitions are convertible to the originals. At this point all the affected definitions
    have been added to the current scope given by [mpath].
  *)
-(* NOTE: we generate proofs for all affected constants, but we don't gnerate proofs of
-   the types of constructors, that can be affected by inlining within types! *)
-Definition gen_defs_and_proofs (Σold Σnew : global_declarations) (mpath : modpath) (suffix: string) (seeds : KernameSet.t) : TemplateMonad unit :=
+(** NOTE: we generate proofs for all affected constants, but we don't gnerate proofs of
+    the types of constructors, that can be affected by inlining within types! *)
+Definition gen_defs_and_proofs (Σold Σnew : global_declarations)
+                               (mpath : modpath)
+                               (suffix : string)
+                               (seeds : KernameSet.t)
+                               : TemplateMonad unit :=
   let filter_decls decls :=
     filter (fun '(kn,gd) =>
               match gd with

@@ -23,7 +23,7 @@ Notation "Σ 'p⊢' s ▷ t" := (PCUICWcbvEval.eval Σ s t) (at level 50, s, t a
 
 Local Ltac invert_wf :=
   match goal with
-  | [H: wf _ |- _] => inversion H;subst;clear H;cbn in *
+  | [H : wf _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
   end.
@@ -187,7 +187,7 @@ Proof.
         destruct wfdecl as [wfdecl].
         destruct c0 as [ctx univ [r]].
         destruct r.
-        apply @type_reduction with (B:=mkNormalArity ctx univ) in wfdecl; eauto.
+        apply @type_reduction with (B := mkNormalArity ctx univ) in wfdecl; eauto.
         cbn in *.
         2: { repeat invert_wf;split;auto;split;auto. }
         constructor.
@@ -212,7 +212,7 @@ Proof.
         end.
         destruct wfdecl as [wfdecl].
         split.
-        -- apply @type_reduction with (B:=cst_type0) in wfdecl as wfdecl1; eauto.
+        -- apply @type_reduction with (B := cst_type0) in wfdecl as wfdecl1; eauto.
            2: repeat invert_wf;split;auto;split;auto.
            eapply (erases_extends (_, _)).
            2: now eauto.
