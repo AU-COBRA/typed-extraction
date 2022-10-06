@@ -21,7 +21,7 @@ Import ListNotations.
 
 Open Scope bs_scope.
 
-Local  Notation "s1 ^ s2" := (String.append s1 s2) : bs_scope.
+Local Notation "s1 ^ s2" := (String.append s1 s2) : bs_scope.
 
 Section printing.
   Context (Σ : P.global_env_ext).
@@ -67,7 +67,7 @@ Section printing.
       fun '(bt, (hda, arga)) =>
         "(" ^ print_term_annotated Γ hd hda ^ ") "
         ^ "(" ^ print_term_annotated Γ arg arga ^ ") : " ^ print_box_type bt
-    | tConst s => fun bt => s.2 ^ " : "  ^ print_box_type bt
+    | tConst s => fun bt => s.2 ^ " : " ^ print_box_type bt
     | tConstruct ind c [] =>
       fun bt =>
         print_ind_ctor ind c ^ " : " ^ print_box_type bt

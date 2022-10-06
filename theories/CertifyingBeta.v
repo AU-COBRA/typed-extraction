@@ -60,7 +60,7 @@ Definition betared_globals_template
   gen_defs_and_proofs Σ Σbeta mpath suffix seeds;;
   ret Σbeta.
 
-(* Mainly for testing purposes *)
+(** Mainly for testing purposes *)
 Definition betared_def {A}
            (def : A) : TemplateMonad _ :=
   mpath <- tmCurrentModPath tt;;
@@ -70,7 +70,7 @@ Definition betared_def {A}
 
 
 Definition template_betared : TemplateTransform :=
-  fun Σ => Ok (timed "Inlining" (fun _ => Build_global_env (universes Σ) (betared_globals (declarations Σ)))).
+  fun Σ => Ok (timed "Inlining" (fun _ => mk_global_env (universes Σ) (betared_globals (declarations Σ)) (retroknowledge Σ))).
 
 Module Ex1.
 

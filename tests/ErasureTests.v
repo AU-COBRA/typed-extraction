@@ -74,7 +74,7 @@ Example ex5_test :
   {| is_logical := true; is_sort := true; is_arity := true |}.
 Proof. vm_compute. reflexivity. Qed.
 
-MetaCoq Quote Recursively Definition ex5' := (forall n m: nat, Prop).
+MetaCoq Quote Recursively Definition ex5' := (forall n m : nat, Prop).
 Example ex5'_test :
   flag_of_type_program ex5' =
   {| is_logical := true; is_sort := false; is_arity := true |}.
@@ -116,14 +116,15 @@ Definition string_of_env_error Σ e :=
   | AlreadyDeclared s => "Alreadydeclared " ++ s
   end.
 
-Definition erase_type_impl (Σ : global_env_ext) (wfextΣ : ∥ wf_ext Σ∥) := @erase_type canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
+Definition erase_type_impl (Σ : global_env_ext) (wfextΣ : ∥ wf_ext Σ∥) :=
+  @erase_type canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
 
 Program Definition erase_type_program (p : Ast.Env.program) : global_env_ext * (list name * box_type) :=
   let Σ := trans_global_env p.1 in
   let Σext := empty_ext (PCUICProgram.trans_env_env Σ) in
   (Σext, erase_type_impl Σext _ Σext eq_refl (trans Σ p.2) _).
-Next Obligation.  Admitted.
-Next Obligation.  Admitted.
+Next Obligation. Admitted.
+Next Obligation. Admitted.
 
 Definition is_arr (t : box_type) : bool :=
   match t with
@@ -205,7 +206,7 @@ Example ex4_test :
 Proof. vm_compute. reflexivity. Qed.
 
 MetaCoq Quote Recursively Definition ex5 :=
-  (forall (A : Type),  list A -> list A -> 0 = 0 -> forall (B : Type), B -> A -> A).
+  (forall (A : Type), list A -> list A -> 0 = 0 -> forall (B : Type), B -> A -> A).
 Example ex5_test :
   erase_and_print_type id ex5 =
   ("A B", "□ → list A → list A → □ → □ → B → A → A").
@@ -232,7 +233,7 @@ with forest (A : Set) : Set :=
   leaf : A -> forest A
 | cons : tree A -> forest A -> forest A.
 
-MetaCoq Quote Recursively Definition ex8 := (forall (A: Set), forest A -> tree A -> A).
+MetaCoq Quote Recursively Definition ex8 := (forall (A : Set), forest A -> tree A -> A).
 Example ex8_test :
   erase_and_print_type id ex8 =
   ("A", "□ → forest A → tree A → A").
@@ -369,7 +370,7 @@ Example ex27_test :
   erase_and_print_type id ex27 = ("", "idT nat → idT nat").
 Proof. vm_compute. reflexivity. Qed.
 
-(* the type of [proj1_sig] *)
+(** the type of [proj1_sig] *)
 MetaCoq Quote Recursively Definition ex28 := (forall (A : Type) (P : A -> Prop), {x : A | P x} -> A).
 Example ex28_test :
   erase_and_print_type id ex28 =
@@ -384,28 +385,29 @@ Import PCUICSafeRetyping.
 
 Local Existing Instance PCUICSN.extraction_normalizing.
 
-Definition type_of_impl (Σ : global_env_ext) (wfextΣ : ∥ wf_ext Σ∥) := type_of canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
+Definition type_of_impl (Σ : global_env_ext) (wfextΣ : ∥ wf_ext Σ∥) :=
+  type_of canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
 
 Program Definition type_of_program (p : Ast.Env.program) : term :=
   let Σ := trans_global_env p.1 in
   let Σext := empty_ext (PCUICProgram.trans_env_env Σ) in
   type_of_impl Σext _ [] _ (trans Σ p.2) _.
-Next Obligation.  Admitted.
-Next Obligation.  Admitted.
+Next Obligation. Admitted.
+Next Obligation. Admitted.
 
 
 Program Definition erase_type_of_program (p : Ast.Env.program) : global_env_ext * box_type :=
   let Σ := trans_global_env p.1 in
   let Σext := empty_ext (PCUICProgram.trans_env_env Σ) in
   (Σext, erase_type_of Σext _ [] (Vector.nil _) (trans Σ p.2) _).
-Next Obligation.  Admitted.
-Next Obligation.  Admitted.
+Next Obligation. Admitted.
+Next Obligation. Admitted.
 
 Program Definition erase_and_print_type_of
            {cf : checker_flags}
            (after_erasure : box_type -> box_type)
            (p : Ast.Env.program) : string :=
-  let '(Σ, bt) :=  erase_type_of_program p in
+  let '(Σ, bt) := erase_type_of_program p in
   (erase_type_tests.print_box_type Σ (todo "assume wf") [] bt).
 
 Definition erase_ind_arity_impl (Σ : global_env_ext) (wfextΣ : ∥ wf_ext Σ∥) :=
@@ -471,14 +473,15 @@ Definition print_one_inductive_body
                                             (ind_type_vars oib))
     ++ String.concat "" (map print_ctor (ExAst.ind_ctors oib)))%bs.
 
-Definition print_inductive (Σ : global_env_ext) (wf : ∥ wf_ext Σ ∥) (mib : ExAst.mutual_inductive_body) : string :=
+Definition print_inductive (Σ : global_env_ext) (wf : ∥ wf_ext Σ ∥)
+                           (mib : ExAst.mutual_inductive_body) : string :=
   String.concat nl (map (print_one_inductive_body Σ wf) (ExAst.ind_bodies mib)).
 
 Axiom assume_wellformed : forall {X}, X.
 Axiom cannot_happen : forall {X}, X.
 
-Definition erase_ind_impl (Σ : global_env_ext) (wf : ∥ wf_ext Σ ∥)
- := @erase_ind canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
+Definition erase_ind_impl (Σ : global_env_ext) (wf : ∥ wf_ext Σ ∥) :=
+  @erase_ind canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
 
 Definition erase_and_print_ind_prog (p : Ast.Env.program) : string :=
   let Σ := trans_global_env p.1 in
@@ -629,14 +632,14 @@ Example ManyParamsInd_test :
 "| MPIConstr □ □ □ □ □ A B" $>.
 Proof. vm_compute. reflexivity. Qed.
 
-(* [Q] is non-arity parameter *)
+(** [Q] is non-arity parameter *)
 Inductive ManyParamsIndNonArity (A : Type) (P : Prop) (Q : True) (B : Type) :=
   MPINAConstr1 : P -> A -> B -> ManyParamsIndNonArity A P Q B
 | MPINAConstr2 : P -> list P -> A*B -> ManyParamsIndNonArity A P Q B.
 
 MetaCoq Quote Recursively Definition ex12 := ManyParamsIndNonArity.
 
-Example ManyParamsIndNonArity_test:
+Example ManyParamsIndNonArity_test :
   erase_and_print_ind_prog ex12 = <$
 "data ManyParamsIndNonArity A P Q B";
 "| MPINAConstr1 □ □ □ □ □ A B";
@@ -668,8 +671,8 @@ Module erase_type_scheme_tests.
 Axiom assume_wellformed : forall {X}, X.
 Axiom does_not_happen : forall {X}, X.
 
-Definition erase_constant_decl_impl (Σ : global_env_ext) (wf : ∥ wf_ext Σ ∥)
- := @erase_constant_decl canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
+Definition erase_constant_decl_impl (Σ : global_env_ext) (wf : ∥ wf_ext Σ ∥) :=
+  @erase_constant_decl canonical_abstract_env_ext_impl (ltac:(now unshelve econstructor;eauto)).
 
 Definition erase_and_print_type_scheme (p : Ast.Env.program) : string * string :=
   let Σ := trans_global_env p.1 in

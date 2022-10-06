@@ -1,4 +1,4 @@
-(** * Inlining pass on the Template Coq representation  *)
+(** * Inlining pass on the Template Coq representation *)
 
 (** Essentially, just an adaptaion of the inlining pass on the erased representation.
  After the pass is applied we generate proofs that the original and the transformed terms are equal in the theory of Coq. The proofs are just by [eq_refl], since the terms are convertible *)
@@ -24,9 +24,9 @@ Section inlining.
     match lookup_env Σ kn with
     | Some (ConstantDecl cst) =>
       match cst_body cst with
-      | Some body (* once told me *) =>
-        (* Often the first beta will expose an iota (record projection),
-               and the projected field is often a function, so we do another beta *)
+      | Some body (* once told me the world is ... *) =>
+        (** Often the first beta will expose an iota (record projection),
+            and the projected field is often a function, so we do another beta *)
         let (hd, args) := decompose_app (beta_body body args) in
         beta_body (iota_body Σ hd) args
       | None => tApp const args
@@ -38,11 +38,11 @@ Section inlining.
     match t with
     | tApp hd args0 => inline_aux (map (inline_aux []) args0 ++ args) hd
     | tCast t0 _ _ =>
-      (* NOTE: removing casts leads to producing more definitions at the proof
-         generation phase, even for the cases when there isn't anything to
-         inline, because the structure of the term has changed.
-         We cannot determine at this point whether we should inline something or
-         nothing at all, since [should_inline] is a function *)
+      (** NOTE: removing casts leads to producing more definitions at the proof
+          generation phase, even for the cases when there isn't anything to
+          inline, because the structure of the term has changed.
+          We cannot determine at this point whether we should inline something or
+          nothing at all, since [should_inline] is a function *)
       inline_aux args t0
     | tConst kn u =>
       if should_inline kn then
@@ -51,13 +51,13 @@ Section inlining.
           match cst_body cst with
           | Some body =>
             let (hd, args) := decompose_app (beta_body body args) in
-          (* NOTE: Often the first beta will expose an iota (record projection),
-             and the projected field is often a function, so we do another beta *)
+          (** NOTE: Often the first beta will expose an iota (record projection),
+              and the projected field is often a function, so we do another beta *)
             let res := beta_body (iota_body Σ hd) args in
-          (* NOTE: after we beta-reduced the function coming from projection,
-             it might intorduce new redexes. This is often the case when using
-             option monads. Therefore, we do a pass that find the redexes and
-             beta-reduces them further. *)
+          (** NOTE: after we beta-reduced the function coming from projection,
+              it might intorduce new redexes. This is often the case when using
+              option monads. Therefore, we do a pass that find the redexes and
+              beta-reduces them further. *)
             betared res
           | None => mkApps (tConst kn u) args
           end
@@ -110,14 +110,17 @@ Section inlining.
 
 End inlining.
 
-Definition inline_globals (should_inline : kername -> bool) (Σ : global_declarations) : global_declarations :=
+Definition inline_globals (should_inline : kername -> bool)
+                          (Σ : global_declarations)
+                          : global_declarations :=
   let newΣ :=
     fold_right (fun '(kn, decl) decls =>
-                  (* Universes play no role in inlining, but carrying
-                     universes is expensive if the set is big. However, all
-                     the lookup functions take [global_env]. *)
+                  (** Universes play no role in inlining, but carrying
+                      universes is expensive if the set is big. However, all
+                      the lookup functions take [global_env]. *)
                   let Σ0 := {| universes := ContextSet.empty;
-                              declarations := decls |} in
+                              declarations := decls;
+                              retroknowledge := MetaCoq.Template.Environment.Retroknowledge.empty |} in
                   (kn, inline_in_decl should_inline Σ0 decl) :: decls) [] Σ in
   filter (fun '(kn, _) => negb (should_inline kn)) newΣ.
 
@@ -143,12 +146,15 @@ Definition inline_def {A}
   inline_globals_template mpath (declarations p.1) should_inline (KernameSet.singleton kn).
 
 
-Definition template_inline (should_inline : kername -> bool): TemplateTransform :=
-  fun Σ => Ok (timed "Inlining" (fun _ => (Build_global_env (universes Σ) (inline_globals should_inline (declarations Σ))))).
+Definition template_inline (should_inline : kername -> bool) : TemplateTransform :=
+  fun Σ => Ok (timed "Inlining" 
+    (fun _ => (mk_global_env (universes Σ)
+                             (inline_globals should_inline (declarations Σ))
+                             (retroknowledge Σ)))).
 
 Module Tests.
 
-  (* Inlining into the local *)
+  (** Inlining into the local *)
   Module Ex1.
     Definition foo : nat -> nat := fun x => x + 1.
     Definition bar : nat -> nat := fun x => foo (x * 2).
@@ -156,18 +162,18 @@ Module Tests.
     Definition baz : nat -> nat := fun x => foo x + bar x.
 
     MetaCoq Run (env <- inline_def (fun kn => eq_kername <%% foo %%> kn
-                                          ||  eq_kername <%% bar %%> kn)
+                                          || eq_kername <%% bar %%> kn)
                                   baz ;;
                  t <- tmEval lazy (map fst env);;
                  tmPrint t).
   End Ex1.
 
-  (* Inlining into the definition from the standard library *)
+  (** Inlining into the definition from the standard library *)
   Module Ex2.
     MetaCoq Run (inline_def (fun kn => eq_kername <%% Nat.add %%> kn ) mult).
   End Ex2.
 
-  (* Inlining a function of several arguments  *)
+  (** Inlining a function of several arguments *)
   Module Ex3.
 
     Definition foo : nat -> nat -> nat -> nat := fun x y z => x + y * z.
@@ -178,7 +184,7 @@ Module Tests.
                 eq_kername <%% bar %%> kn) baz).
   End Ex3.
 
-  (* Records *)
+  (** Records *)
   Module Ex4.
 
     Set Primitive Projections.
@@ -189,19 +195,19 @@ Module Tests.
     Definition set_field1 (b : blah) (n : nat) :=
       {| field1 := n; field2 := b.(field2) |}.
 
-    Definition bar (b : blah ):= set_field1 b 0.
+    Definition bar (b : blah ) := set_field1 b 0.
 
     MetaCoq Run (inline_def (fun kn => eq_kername <%% set_field1 %%> kn) bar).
   End Ex4.
 
-  (* Casts *)
+  (** Casts *)
   Module Ex5.
     Definition foo : nat -> nat -> nat := fun x y => x + y.
     Definition bar : nat -> nat := fun x => ((foo (x * 2)) : nat -> nat) x.
     MetaCoq Run (inline_def (fun kn => eq_kername <%% foo %%> kn) bar).
   End Ex5.
 
-  (* Inlining type aliases in inductives *)
+  (** Inlining type aliases in inductives *)
   Module Ex6.
 
     Definition my_prod (A B : Type) : Type := A * B.

@@ -39,29 +39,29 @@ Record constant_body :=
   { cst_type : list name * box_type;
     cst_body : option term; }.
 
-(* The arity of an inductive and type alias is an iterated product that we will
-     decompose into type vars. Each type var has information about its
-     type associated with it. Here are a couple of examples:
+(** The arity of an inductive and type alias is an iterated product that we will
+    decompose into type vars. Each type var has information about its
+    type associated with it. Here are a couple of examples:
 
-     1. [sig : forall (A : Type), (A -> Prop) -> Type] returns [[a; b]] where
+    - [sig : forall (A : Type), (A -> Prop) -> Type] returns [[a; b]] where
 
-          tvar_is_logical a = false,
-          tvar_is_arity a = true,
-          tvar_is_sort a = true,
+        tvar_is_logical a = false,
+        tvar_is_arity a = true,
+        tvar_is_sort a = true,
 
-          tvar_is_logical b = true,
-          tvar_is_arity b = true,
-          tvar_is_sort b = false,
+        tvar_is_logical b = true,
+        tvar_is_arity b = true,
+        tvar_is_sort b = false,
 
-     2. [Vector.t : Type -> nat -> Type] returns [[a; b]] where
+    - [Vector.t : Type -> nat -> Type] returns [[a; b]] where
 
-          tvar_is_logical a = false,
-          tvar_is_arity a = true,
-          tvar_is_sort a = true,
+        tvar_is_logical a = false,
+        tvar_is_arity a = true,
+        tvar_is_sort a = true,
 
-          tvar_is_logical b = false,
-          tvar_is_arity b = false,
-          tvar_is_sort b = false *)
+        tvar_is_logical b = false,
+        tvar_is_arity b = false,
+        tvar_is_sort b = false *)
 Record type_var_info :=
   { tvar_name : name;
     tvar_is_logical : bool;
@@ -80,7 +80,8 @@ Record one_inductive_body :=
     ind_projs : list (ident * box_type); }.
 
 Record mutual_inductive_body :=
-  { ind_npars : nat;
+  { ind_finite : recursivity_kind;
+    ind_npars : nat;
     ind_bodies : list one_inductive_body }.
 
 Inductive global_decl :=
@@ -88,7 +89,7 @@ Inductive global_decl :=
 | InductiveDecl : mutual_inductive_body -> global_decl
 | TypeAliasDecl : option (list type_var_info * box_type) -> global_decl.
 
-(* has_deps specified whether the environment includes dependencies of this global *)
+(** has_deps specified whether the environment includes dependencies of this global *)
 Definition global_env := list (kername * bool (* has_deps *) * global_decl).
 
 Definition lookup_env (Σ : global_env) (id : kername) : option global_decl :=
@@ -137,7 +138,7 @@ Definition lookup_constructor_full (Σ : global_env)
 Definition trans_cst (cst : constant_body) : EAst.constant_body :=
   {| EAst.cst_body := cst_body cst |}.
 
-Definition trans_ctors (ctors : list (ident * list (name * box_type) * nat))  :=
+Definition trans_ctors (ctors : list (ident * list (name * box_type) * nat)) :=
   map (fun '(nm, _, nargs) => mkConstructor nm nargs) ctors.
 
 Definition trans_oib (oib : one_inductive_body) : EAst.one_inductive_body :=
@@ -149,7 +150,8 @@ Definition trans_oib (oib : one_inductive_body) : EAst.one_inductive_body :=
 
 Definition trans_mib
            (mib : mutual_inductive_body) : EAst.mutual_inductive_body :=
-  {| EAst.ind_npars := mib.(ind_npars);
+  {| EAst.ind_finite := mib.(ind_finite);
+     EAst.ind_npars := mib.(ind_npars);
      EAst.ind_bodies := map trans_oib mib.(ind_bodies) |}.
 
 Definition trans_global_decl (decl : global_decl) : EAst.global_decl :=

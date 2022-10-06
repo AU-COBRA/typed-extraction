@@ -166,7 +166,7 @@ Arguments bigprod_find {_ _} _ {_}.
 Definition kername_set_of_list (l : list kername) : KernameSet.t :=
   fold_left (fun s k => KernameSet.add k s) l KernameSet.empty.
 
-(* When extracting this can be remapped as something that measures and outputs some info *)
+(** When extracting this can be remapped as something that measures and outputs some info *)
 Definition timed {A} (part : String.string) (f : unit -> A) : A :=
   f tt.
 
