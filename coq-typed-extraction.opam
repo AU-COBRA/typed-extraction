@@ -13,12 +13,12 @@ dev-repo: "git+https://github.com/AU-COBRA/typed-extraction.git"
 bug-reports: "https://github.com/AU-COBRA/typed-extraction/issues"
 
 depends: [
-  "coq" {>= "8.16" & < "8.17~"}
-  "coq-metacoq-template" {= "1.1+8.16"}
-  "coq-metacoq-pcuic" {= "1.1+8.16"}
-  "coq-metacoq-safechecker" {= "1.1+8.16"}
-  "coq-metacoq-erasure" {= "1.1+8.16"}
-  "coq-equations" {= "1.3+8.16"}
+  "coq" {>= "8.14" & < "8.17~"}
+  "coq-metacoq-template" {>= "1.1.1"}
+  "coq-metacoq-pcuic" {>= "1.1.1"}
+  "coq-metacoq-safechecker" {>= "1.1.1"}
+  "coq-metacoq-erasure" {>= "1.1.1"}
+  "coq-equations" {>= "1.3"}
 ]
 
 build: [

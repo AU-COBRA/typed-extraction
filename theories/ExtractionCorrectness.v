@@ -74,8 +74,8 @@ Admitted.
 Ltac invert_wf :=
   match goal with
   | [H : wf _ |- _] => sq; inversion H;subst;clear H;cbn in *
-  | [H : P.on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : P.on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+  | [H : P.on_global_decls_data _ _ _ _ _ _ _ |- _] => inversion H; subst; clear H; cbn in *
   end.
 
 Lemma wf_erase_global_decls_recursive `{EWellformed.EEnvFlags} :

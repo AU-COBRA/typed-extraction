@@ -54,7 +54,7 @@ Section ECorrect.
 
   Existing Instance config.extraction_checker_flags.
 
-  Context {X_type : PCUICWfEnv.abstract_env_ext_impl} {X : projT1 X_type}.
+  Context {X_type : PCUICWfEnv.abstract_env_impl} {X : projT1 (projT2 X_type)}.
 
 Lemma erase_ind_body_correct Σ wfΣ kn mib oib wf :
   erases_one_inductive_body oib (trans_oib (@erase_ind_body X_type X Σ wfΣ kn mib oib wf)).
