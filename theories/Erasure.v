@@ -51,8 +51,8 @@ Local Obligation Tactic := simpl in *; program_simplify; CoreTactics.equations_s
 
 Section FixSigmaExt.
 
-Context {X_type : abstract_env_ext_impl}
-        {X : X_type.π1}.
+Context {X_type : abstract_env_impl}
+        {X : X_type.π2.π1}.
 
 Local Definition heΣ Σ (wfΣ : abstract_env_ext_rel X Σ) :
     ∥ wf_ext Σ ∥ := abstract_env_ext_wf _ wfΣ.
@@ -874,7 +874,7 @@ erase_type_aux Γ erΓ t isT next_tvar
 Ltac wfAbstractEnv :=
 match goal with
   | [H : ?Σ ∼_ext ?X |- _] =>
-      pose proof (@abstract_env_ext_wf _ _ _ _ X Σ H)
+      pose proof (@abstract_env_ext_wf _ _ _ _ _ X Σ H)
   end.
 Solve All Obligations with
   Tactics.program_simplify;
@@ -1417,11 +1417,11 @@ Program Definition erase_global_decl
         : global_decl :=
   match decl with
   | PCUICEnvironment.ConstantDecl cst =>
-    match @erase_constant_decl canonical_abstract_env_ext_impl _ Σext _ cst _ with
+    match @erase_constant_decl canonical_abstract_env_impl _ Σext _ cst _ with
     | inl cst => ConstantDecl cst
     | inr ta => TypeAliasDecl ta
     end
-  | PCUICEnvironment.InductiveDecl mib => InductiveDecl (@erase_ind canonical_abstract_env_ext_impl _ Σext _ kn mib _)
+  | PCUICEnvironment.InductiveDecl mib => InductiveDecl (@erase_ind canonical_abstract_env_impl _ Σext _ kn mib _)
   end.
 Solve Obligations with now unshelve econstructor;eauto.
 
@@ -1491,8 +1491,8 @@ Program Fixpoint erase_global_decls_deps_recursive
 Ltac invert_wf :=
   match goal with
   | [H : ∥ wf _ ∥ |- _] => sq; inversion H;subst;clear H;cbn in *
-  | [H : on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+  | [H : on_global_decls_data _ _ _ _ _ _ _ |- _] => inversion H; subst; clear H; cbn in *
   end.
 Next Obligation.
   repeat invert_wf;split;auto;split;auto.

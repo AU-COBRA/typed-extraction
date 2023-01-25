@@ -74,8 +74,8 @@ Admitted.
 Ltac invert_wf :=
   match goal with
   | [H : wf _ |- _] => sq; inversion H;subst;clear H;cbn in *
-  | [H : P.on_global_env _ _ _ |- _] => inversion H;subst;clear H;cbn in *
   | [H : P.on_global_decls _ _ _ _ (_ :: _) |- _] => inversion H;subst;clear H;cbn in *
+  | [H : P.on_global_decls_data _ _ _ _ _ _ _ |- _] => inversion H; subst; clear H; cbn in *
   end.
 
 Lemma wf_erase_global_decls_recursive `{EWellformed.EEnvFlags} :
@@ -129,7 +129,7 @@ Proof.
   intros cl_t cl_env wfg ev.
   rewrite OptimizePropDiscr.trans_env_optimize_env.
   remember (EEnvMap.GlobalContextMap.make _ _) as Σ0.
-  unshelve eapply (EOptimizePropDiscr.optimize_correct (fl := default_wcbv_flags) (Σ := Σ0)) with (t := t) (v := v);subst;cbn;eauto.
+  unshelve eapply (EOptimizePropDiscr.optimize_correct (fl := default_wcbv_flags) (Σ := Σ0));subst;cbn;eauto.
 Qed.
 
 
