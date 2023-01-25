@@ -3,7 +3,7 @@
 Extraction of types, certifying transformations (eta, inlining), type annotations, the dearg optimisation and corresponding proofs.
 The repository is an intermadiate step towards moving this functionality to MetaCoq.
 
-Builds with Coq 8.16 and MetaCoq 1.0+8.16
+Builds with Coq 8.14-8.16 and MetaCoq 1.1.1
 
 ## How to build
 
