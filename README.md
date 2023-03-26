@@ -1,3 +1,6 @@
+# This repo is now merged into MetaCoq
+The typed-extraction library is now part of [MetaCoq](https://github.com/MetaCoq/metacoq).
+
 # typed-extraction
 
 Extraction of types, certifying transformations (eta, inlining), type annotations, the dearg optimization and corresponding proofs.
